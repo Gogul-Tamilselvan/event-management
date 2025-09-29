@@ -75,18 +75,15 @@ export default function Header() {
         'sticky top-0 z-50 w-full transition-all duration-300',
         isScrolled
           ? 'border-b bg-card/80 backdrop-blur-lg'
-          : 'bg-transparent'
+          : 'bg-background/80'
       )}
     >
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Logo className={cn(isScrolled ? 'text-primary' : 'text-white')} />
+            <Logo className="text-primary" />
             <span
-              className={cn(
-                'font-bold sm:inline-block font-headline',
-                isScrolled ? 'text-foreground' : 'text-white'
-              )}
+              className="font-bold sm:inline-block font-headline text-foreground"
             >
               Zenith Events
             </span>
@@ -98,7 +95,7 @@ export default function Header() {
                   href="/"
                   className={cn(
                     navigationMenuTriggerStyle(),
-                    isScrolled ? 'bg-transparent' : 'bg-transparent text-white hover:bg-white/10'
+                    'bg-transparent'
                   )}
                 >
                   Home
@@ -106,9 +103,7 @@ export default function Header() {
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuTrigger
-                  className={cn(
-                    isScrolled ? 'bg-transparent' : 'bg-transparent text-white hover:bg-white/10'
-                  )}
+                  className='bg-transparent'
                 >
                   Dashboards
                 </NavigationMenuTrigger>
@@ -131,7 +126,7 @@ export default function Header() {
                   href="/support"
                   className={cn(
                     navigationMenuTriggerStyle(),
-                    isScrolled ? 'bg-transparent' : 'bg-transparent text-white hover:bg-white/10'
+                    'bg-transparent'
                   )}
                 >
                   Support
@@ -144,12 +139,9 @@ export default function Header() {
         {/* Mobile Menu */}
         <div className="flex w-full items-center justify-between md:hidden">
            <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Logo className={cn(isScrolled ? 'text-primary' : 'text-white')} />
+            <Logo className="text-primary" />
             <span
-              className={cn(
-                'font-bold sm:inline-block font-headline',
-                isScrolled ? 'text-foreground' : 'text-white'
-              )}
+              className="font-bold sm:inline-block font-headline text-foreground"
             >
               Zenith Events
             </span>
@@ -160,7 +152,7 @@ export default function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className={cn(isScrolled ? 'text-foreground' : 'text-white hover:bg-white/10 hover:text-white')}
+                className="text-foreground"
               >
                 <Menu />
               </Button>
@@ -188,7 +180,7 @@ export default function Header() {
         </div>
 
         <div className="hidden flex-1 items-center justify-end space-x-2 md:flex">
-          <Button asChild variant="ghost" className={cn(isScrolled ? 'text-foreground' : 'text-white hover:bg-white/10 hover:text-white')}>
+          <Button asChild variant="ghost" className="text-foreground">
             <Link href="/login">
               <LogIn className="mr-2 h-4 w-4" /> Login
             </Link>
