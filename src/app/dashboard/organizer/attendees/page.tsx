@@ -20,10 +20,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { JoinRequest } from '@/lib/data';
-import { getJoinRequests } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Loader2 } from 'lucide-react';
 import { updateJoinRequestAction } from '@/actions/update-join-request';
+import { getJoinRequestsAction } from '@/actions/get-join-requests';
 import { useToast } from '@/hooks/use-toast';
 
 const statusVariant = {
@@ -42,14 +42,17 @@ export default function AttendeeManagementPage() {
   useEffect(() => {
     async function fetchRequests() {
       if (user) {
-        const allRequests = await getJoinRequests();
-        const organizerRequests = allRequests.filter(req => req.organizerId === user.uid);
-        setRequests(organizerRequests);
+        const result = await getJoinRequestsAction(user.uid);
+        if (result.success && result.requests) {
+          setRequests(result.requests);
+        } else {
+          toast({ title: 'Error', description: 'Could not fetch join requests.', variant: 'destructive'});
+        }
       }
       setLoading(false);
     }
     fetchRequests();
-  }, [user]);
+  }, [user, toast]);
 
   const handleRequestUpdate = async (requestId: string, status: 'approved' | 'rejected', eventId: string) => {
     setUpdating(prev => ({...prev, [requestId]: true}));

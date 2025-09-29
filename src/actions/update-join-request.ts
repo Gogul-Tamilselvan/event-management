@@ -19,23 +19,31 @@ export async function updateJoinRequestAction(requestId: string, status: JoinReq
         }
         
         const requestRef = doc(db, "joinRequests", requestId);
+        const eventRef = doc(db, "events", eventId);
+
+        // Check if documents exist before attempting to update
+        const requestSnap = await getDoc(requestRef);
+        if (!requestSnap.exists()) {
+            return { success: false, error: `Join request with ID ${requestId} not found.` };
+        }
+        
+        // Update the request status
         await updateDoc(requestRef, { status: status });
 
         // If approved, increment the attendees count for the event and send email
         if (status === 'approved') {
-            const eventRef = doc(db, "events", eventId);
+            const eventSnap = await getDoc(eventRef);
+            if (!eventSnap.exists()) {
+                 return { success: false, error: `Event with ID ${eventId} not found.` };
+            }
+
             await updateDoc(eventRef, { attendees: increment(1) });
             
-            const eventSnap = await getDoc(eventRef);
-            const requestSnap = await getDoc(requestRef);
-
-            if (eventSnap.exists() && requestSnap.exists()) {
-                const event = { id: eventSnap.id, ...eventSnap.data() } as Event;
-                const request = requestSnap.data() as JoinRequest;
-                
-                // Fire and forget email sending
-                sendEventApprovalEmail(request, event).catch(console.error);
-            }
+            const event = { id: eventSnap.id, ...eventSnap.data() } as Event;
+            const request = requestSnap.data() as JoinRequest;
+            
+            // Fire and forget email sending
+            sendEventApprovalEmail(request, event).catch(console.error);
         }
 
         revalidatePath('/dashboard/organizer/attendees');
