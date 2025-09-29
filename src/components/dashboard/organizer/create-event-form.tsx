@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -292,7 +291,7 @@ export default function CreateEventForm() {
                             <FormItem>
                             <FormLabel>UPI ID</FormLabel>
                             <FormControl>
-                                <Input placeholder="your-upi-id@okhdfcbank" {...field} />
+                                <Input placeholder="your-upi@bank" {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>

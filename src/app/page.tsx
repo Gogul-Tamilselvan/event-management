@@ -112,7 +112,7 @@ export default async function Home() {
             <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
               <Link href="/signup">Get Started</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-black">
+            <Button asChild size="lg" variant="secondary">
               <Link href="/dashboard/organizer">Create an Event <ArrowRight className="ml-2" /></Link>
             </Button>
           </div>
@@ -257,4 +257,3 @@ export default async function Home() {
     </div>
   );
 }
-

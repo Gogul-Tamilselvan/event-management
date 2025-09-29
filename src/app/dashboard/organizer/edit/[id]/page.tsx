@@ -338,7 +338,7 @@ export default function EditEventPage() {
                             <FormItem>
                             <FormLabel>UPI ID</FormLabel>
                             <FormControl>
-                                <Input {...field} />
+                                <Input placeholder="your-upi@bank" {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
