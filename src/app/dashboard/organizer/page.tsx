@@ -3,7 +3,8 @@ import {
     Activity,
     Users,
     CalendarCheck,
-    PlusCircle
+    PlusCircle,
+    Clock,
   } from 'lucide-react'
   
   import {
@@ -23,6 +24,7 @@ import {
     const organizerEvents = allEvents.filter(e => e.organizer === 'Jane Smith' || e.organizer === 'Organizer One');
     const totalAttendees = organizerEvents.reduce((acc, event) => acc + event.attendees, 0);
     const approvedEvents = organizerEvents.filter(e => e.status === 'Approved').length;
+    const pendingEvents = organizerEvents.filter(e => e.status === 'Pending').length;
 
     return (
         <div className="flex flex-col gap-4">
@@ -69,22 +71,22 @@ import {
                 </Card>
                  <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Create New</CardTitle>
-                    <PlusCircle className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
+                    <Clock className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">New Event</div>
+                    <div className="text-2xl font-bold">{pendingEvents}</div>
                     <p className="text-xs text-muted-foreground">
-                    Start planning your next success
+                    Awaiting review
                     </p>
                 </CardContent>
                 </Card>
             </div>
             <div className="grid gap-4 md:gap-8 lg:grid-cols-5">
-                <div className="lg:col-span-3">
+                <div id="my-events" className="lg:col-span-3">
                     <ManagedEvents events={organizerEvents} />
                 </div>
-                <div className="lg:col-span-2">
+                <div id="create-event" className="lg:col-span-2">
                     <CreateEventForm />
                 </div>
             </div>

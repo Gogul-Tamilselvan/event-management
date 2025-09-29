@@ -82,7 +82,8 @@ const testimonials = [
 
 export default async function Home() {
   const heroImage = placeholderImages.find(p => p.id === 'hero-background');
-  const upcomingEvents = (await getEvents()).slice(0, 4);
+  const allEvents = await getEvents();
+  const upcomingEvents = allEvents.filter(event => event.status === 'Approved').slice(0, 4);
 
   return (
     <div className="flex flex-col">

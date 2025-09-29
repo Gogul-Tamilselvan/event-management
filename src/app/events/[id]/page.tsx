@@ -1,4 +1,6 @@
 
+'use client';
+
 import Image from "next/image";
 import { Calendar, MapPin, Mail, Clock } from "lucide-react";
 import { getEvents } from "@/lib/data";
@@ -9,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,22 +19,41 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEffect, useState } from "react";
+import type { Event } from "@/lib/data";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
-type EventPageProps = {
-  params: {
-    id: string;
-  };
-};
+export default function EventPage() {
+  const params = useParams();
+  const id = params.id as string;
+  const [event, setEvent] = useState<Event | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-export default async function EventPage({ params }: EventPageProps) {
-  const events = await getEvents();
-  const event = events.find((e) => e.id === params.id);
+  useEffect(() => {
+    async function fetchEvent() {
+      const events = await getEvents();
+      const currentEvent = events.find((e) => e.id === id);
+      if (currentEvent) {
+        setEvent(currentEvent);
+      } else {
+        notFound();
+      }
+      setLoading(false);
+    }
+    fetchEvent();
+  }, [id]);
 
-  if (!event) {
-    notFound();
+  if (loading) {
+    return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
   }
   
-  const generateCalendarLink = (event: typeof events[0], type: 'google' | 'outlook' | 'ical') => {
+  if (!event) {
+    return notFound();
+  }
+  
+  const generateCalendarLink = (event: Event, type: 'google' | 'outlook' | 'ical') => {
     const startTime = new Date(`${event.date}T${event.time.split(' - ')[0]}`).toISOString().replace(/-|:|\.\d\d\d/g, '');
     const endTime = new Date(`${event.date}T${event.time.split(' - ')[1]}`).toISOString().replace(/-|:|\.\d\d\d/g, '');
 
@@ -40,6 +61,20 @@ export default async function EventPage({ params }: EventPageProps) {
       return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${startTime}/${endTime}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}`;
     }
     return '#';
+  };
+
+  const handleRsvp = () => {
+    toast({
+      title: "RSVP Successful!",
+      description: `You have successfully RSVP'd for ${event.title}.`,
+    });
+  };
+
+  const handleEmailReminder = () => {
+    toast({
+      title: "Reminder Set!",
+      description: `We will email you a reminder for ${event.title} 24 hours before it starts.`,
+    });
   };
 
   return (
@@ -106,7 +141,7 @@ export default async function EventPage({ params }: EventPageProps) {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 pt-4">
-                     <Button size="lg" className="w-full">RSVP Now</Button>
+                     <Button size="lg" className="w-full" onClick={handleRsvp}>RSVP Now</Button>
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="lg" className="w-full">
@@ -121,7 +156,7 @@ export default async function EventPage({ params }: EventPageProps) {
                             <DropdownMenuItem>iCal</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline" size="lg" className="w-full">
+                    <Button variant="outline" size="lg" className="w-full" onClick={handleEmailReminder}>
                       <Mail className="mr-2 h-4 w-4" /> Email Reminder
                     </Button>
                 </div>
