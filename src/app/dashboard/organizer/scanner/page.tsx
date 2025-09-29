@@ -1,88 +1,116 @@
 
 'use client';
 
-import { useRef, useState } from 'react';
-import { Scanner } from '@yudiel/react-qr-scanner';
+import { useEffect, useRef } from 'react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+import type { Html5QrcodeResult } from 'html5-qrcode/esm/html5-qrcode';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { verifyAttendeeAction } from '@/actions/verify-attendee';
-import { Barcode, ScanLine } from 'lucide-react';
+import { Barcode } from 'lucide-react';
+
+const QR_READER_ID = "qr-reader";
 
 export default function ScannerPage() {
   const { toast } = useToast();
-  const [lastResult, setLastResult] = useState<string | null>(null);
-  const processingRef = useRef(false);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const lastScannedId = useRef<string | null>(null);
+  const scanTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const handleScanResult = (result: string) => {
-    if (result && result !== lastResult && !processingRef.current) {
-        processingRef.current = true;
-        setLastResult(result);
+  useEffect(() => {
+    // This function will only run on the client
+    const onScanSuccess = (decodedText: string, result: Html5QrcodeResult) => {
+      // Prevent re-scanning the same code for a few seconds
+      if (decodedText === lastScannedId.current) {
+        return;
+      }
+      lastScannedId.current = decodedText;
 
-        // This function will still run asynchronously
-        (async () => {
-            const response = await verifyAttendeeAction(result);
+      // Set a timeout to clear the last scanned ID
+      if (scanTimeout.current) {
+        clearTimeout(scanTimeout.current);
+      }
+      scanTimeout.current = setTimeout(() => {
+        lastScannedId.current = null;
+      }, 3000); // 3-second cooldown
 
-            if (response.success) {
-                toast({
-                    title: 'Check-in Successful',
-                    description: `${response.attendeeName} has been checked in.`,
-                });
-            } else {
-                toast({
-                    title: 'Check-in Failed',
-                    description: response.message,
-                    variant: 'destructive',
-                });
+      // Pause the scanner to prevent immediate re-scans
+      if (scannerRef.current) {
+        scannerRef.current.pause(true);
+      }
+
+      (async () => {
+        const response = await verifyAttendeeAction(decodedText);
+
+        if (response.success) {
+          toast({
+            title: 'Check-in Successful',
+            description: `${response.attendeeName} has been checked in.`,
+          });
+        } else {
+          toast({
+            title: 'Check-in Failed',
+            description: response.message,
+            variant: 'destructive',
+          });
+        }
+
+        // Resume scanning after a short delay
+        setTimeout(() => {
+            if(scannerRef.current?.getState() === 2) { // 2 is PAUSED state
+                 scannerRef.current.resume();
             }
+        }, 2000);
 
-            // Prevent re-scanning the same code for 3 seconds
-            setTimeout(() => {
-                processingRef.current = false;
-                setLastResult(null);
-            }, 3000);
-        })();
+      })();
+    };
+
+    const onScanFailure = (error: any) => {
+      // This is called frequently, so we can ignore it unless we want to log errors.
+      // console.warn(`QR error = ${error}`);
+    };
+
+    if (typeof window !== 'undefined') {
+        scannerRef.current = new Html5QrcodeScanner(
+            QR_READER_ID,
+            {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                rememberLastUsedCamera: true,
+            },
+            /* verbose= */ false
+        );
+        scannerRef.current.render(onScanSuccess, onScanFailure);
     }
-  };
-
+    
+    // Cleanup function to stop the scanner
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(error => {
+          console.error("Failed to clear html5QrcodeScanner.", error);
+        });
+      }
+      if (scanTimeout.current) {
+          clearTimeout(scanTimeout.current);
+      }
+    };
+  }, [toast]);
 
   return (
     <Card>
-        <CardHeader>
-            <CardTitle>QR Code Scanner</CardTitle>
-            <CardDescription>Scan attendee QR codes to check them in.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <div className="w-full max-w-md mx-auto p-4 border-2 border-dashed rounded-lg">
-                <Scanner
-                    onResult={(text, result) => handleScanResult(text)}
-                    onError={(error) => console.log(error?.message)}
-                    containerStyle={{ width: '100%', paddingTop: '100%', position: 'relative' }}
-                    videoStyle={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                    scanDelay={500}
-                    components={{
-                        audio: false,
-                        finder: ({ width, height, top, left }) => (
-                            <>
-                                <ScanLine className="absolute text-primary animate-pulse" style={{ top: top, left: left, width: width, height: height }} />
-                                <div style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    width: '100%',
-                                    height: '100%',
-                                    border: '50px solid rgba(0, 0, 0, 0.3)',
-                                    boxSizing: 'border-box'
-                                }}></div>
-                            </>
-                        ),
-                    }}
-                />
-            </div>
-            <div className="mt-4 text-center text-muted-foreground flex items-center justify-center gap-2">
-                <Barcode className="h-5 w-5"/>
-                <p>Point the camera at a QR code</p>
-            </div>
-        </CardContent>
+      <CardHeader>
+        <CardTitle>QR Code Scanner</CardTitle>
+        <CardDescription>Scan attendee QR codes to check them in.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="w-full max-w-md mx-auto">
+          <div id={QR_READER_ID} />
+        </div>
+         <div className="mt-4 text-center text-muted-foreground flex items-center justify-center gap-2">
+            <Barcode className="h-5 w-5"/>
+            <p>Point the camera at a QR code</p>
+        </div>
+      </CardContent>
     </Card>
   );
 }
