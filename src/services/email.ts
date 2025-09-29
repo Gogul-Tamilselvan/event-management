@@ -11,11 +11,13 @@ import { createGoogleWalletAction } from "@/actions/google-wallet";
  */
 export async function sendEventApprovalEmail(request: JoinRequest, event: Event): Promise<void> {
     // --- Mock Email Sending Logic for Development ---
-    // This can be used if the production email service is down.
-    // logMockEmail(request.attendeeEmail, event.title, "http://mock-wallet-link.com");
+    // This will be used until the EmailJS account settings are updated.
+    const walletResult = await createGoogleWalletAction(event, request.attendeeName);
+    logMockEmail(request.attendeeEmail, event.title, walletResult.walletUrl ?? "http://mock-wallet-link.com");
 
 
-    // --- Production Email Sending Logic ---
+    // --- Production Email Sending Logic (Currently disabled) ---
+    /*
     try {
         await sendProductionEmail(request, event);
     } catch (error) {
@@ -23,23 +25,25 @@ export async function sendEventApprovalEmail(request: JoinRequest, event: Event)
         // Re-throw the error to ensure the calling action knows about the failure.
         throw error;
     }
+    */
 }
 
 /**
  * Logs a mock email to the console for development purposes.
  */
-function logMockEmail(recipient: string, eventTitle: string, walletUrl: string) {
-    console.log("--- Mock Email Sent ---");
+function logMockEmail(recipient: string, eventTitle: string, walletUrl:string) {
+    console.log("--- MOCK EMAIL SENT (EmailJS configuration pending) ---");
     console.log(`To: ${recipient}`);
-    console.log(`From: (EmailJS)`);
+    console.log(`From: (Zenith Events via Mock Service)`);
     console.log(`Subject: Your Ticket for ${eventTitle}!`);
-    console.log(`Body: Congratulations! Your ticket is ready. Add to wallet: ${walletUrl}`);
-    console.log("-----------------------");
+    console.log(`Body: Congratulations! Your ticket is ready. You can add it to your Google Wallet here: ${walletUrl}`);
+    console.log("----------------------------------------------------");
 }
 
 
 /**
  * Sends a real email using the EmailJS REST API from the server.
+ * NOTE: This is currently disabled.
  */
 async function sendProductionEmail(request: JoinRequest, event: Event): Promise<void> {
     const { attendeeEmail, attendeeName } = request;
