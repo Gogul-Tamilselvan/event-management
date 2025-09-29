@@ -11,8 +11,7 @@ import { createGoogleWalletAction } from "@/actions/google-wallet";
  */
 export async function sendEventApprovalEmail(request: JoinRequest, event: Event): Promise<void> {
     // --- Mock Email Sending Logic for Development ---
-    // This logs the email to the console instead of sending a real one.
-    // Useful for when an email service isn't configured.
+    // This can be used if the production email service is down.
     // logMockEmail(request.attendeeEmail, event.title, "http://mock-wallet-link.com");
 
 
@@ -40,7 +39,7 @@ function logMockEmail(recipient: string, eventTitle: string, walletUrl: string) 
 
 
 /**
- * Sends a real email using EmailJS REST API.
+ * Sends a real email using the EmailJS REST API from the server.
  */
 async function sendProductionEmail(request: JoinRequest, event: Event): Promise<void> {
     const { attendeeEmail, attendeeName } = request;
@@ -77,7 +76,7 @@ async function sendProductionEmail(request: JoinRequest, event: Event): Promise<
     };
 
     try {
-        console.log("Attempting to send email via EmailJS...");
+        console.log("Attempting to send email via EmailJS REST API...");
         const fetch = (await import('node-fetch')).default;
         const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
             method: 'POST',
@@ -96,7 +95,7 @@ async function sendProductionEmail(request: JoinRequest, event: Event): Promise<
         console.log(`--- Production Email Sent to ${attendeeEmail} via EmailJS ---`);
 
     } catch (error) {
-        console.error("Error sending production email with EmailJS:", error);
+        console.error("Error sending production email with EmailJS REST API:", error);
         throw error;
     }
 }
