@@ -19,6 +19,7 @@ import {
   
   export default async function OrganizerDashboardPage() {
     const allEvents = await getEvents();
+    // In a real app, this should be filtered by the logged-in organizer's ID
     const organizerEvents = allEvents.filter(e => e.organizer === 'Jane Smith' || e.organizer === 'Organizer One');
     const totalAttendees = organizerEvents.reduce((acc, event) => acc + event.attendees, 0);
     const approvedEvents = organizerEvents.filter(e => e.status === 'Approved').length;

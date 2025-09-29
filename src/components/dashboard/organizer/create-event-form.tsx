@@ -1,3 +1,11 @@
+
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,8 +24,86 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { createEventAction } from '@/actions/create-event';
+import { useAuth } from '@/hooks/use-auth';
+import { placeholderImages } from '@/lib/placeholder-images';
+
+const formSchema = z.object({
+  name: z.string().min(1, 'Event name is required.'),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters.'),
+  date: z.string().min(1, 'Date is required.'),
+  time: z.string().min(1, 'Time is required.'),
+  location: z.string().min(1, 'Location is required.'),
+  category: z.string().min(1, 'Category is required.'),
+  capacity: z.coerce.number().min(1, 'Capacity must be at least 1.'),
+  image: z.string().url('A valid image URL is required.'),
+});
 
 export default function CreateEventForm() {
+  const { toast } = useToast();
+  const { userProfile } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      date: '',
+      time: '',
+      location: '',
+      category: '',
+      capacity: 100,
+      image: placeholderImages.find(p => p.id === 'event-1')?.imageUrl ?? '',
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!userProfile) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to create an event.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setLoading(true);
+    
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      formData.append(key, String(value));
+    });
+
+    const result = await createEventAction(formData, userProfile.name);
+
+    if (result.success) {
+      toast({
+        title: 'Event Created!',
+        description: 'Your event has been submitted for approval.',
+      });
+      form.reset();
+    } else {
+      toast({
+        title: 'Error',
+        description: result.error || 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+    }
+
+    setLoading(false);
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -27,70 +113,153 @@ export default function CreateEventForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="grid gap-6">
-          <div className="grid gap-3">
-            <Label htmlFor="name">Event Name</Label>
-            <Input
-              id="name"
-              type="text"
-              className="w-full"
-              placeholder="e.g. Annual Tech Summit"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g. Annual Tech Summit"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Provide a compelling description of your event."
-              className="min-h-32"
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Provide a compelling description of your event."
+                      className="min-h-32"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-3">
-              <Label htmlFor="date">Date</Label>
-              <Input id="date" type="date" />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-             <div className="grid gap-3">
-              <Label htmlFor="time">Time</Label>
-              <Input id="time" type="time" />
-            </div>
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              type="text"
-              className="w-full"
-              placeholder="e.g. Silicon Valley Convention Center"
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g. Silicon Valley Convention Center"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-           <div className="grid grid-cols-2 gap-4">
-             <div className="grid gap-3">
-                <Label htmlFor="category">Category</Label>
-                <Select>
-                  <SelectTrigger id="category" aria-label="Select category">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="technology">Technology</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="networking">Networking</SelectItem>
-                     <SelectItem value="community">Community</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="capacity">Capacity</Label>
-                <Input id="capacity" type="number" placeholder="2000" />
-              </div>
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="picture">Event Image</Label>
-            <Input id="picture" type="file" />
-          </div>
-          <Button type="submit" className="w-full">Create Event</Button>
-        </form>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="technology">Technology</SelectItem>
+                        <SelectItem value="marketing">Marketing</SelectItem>
+                        <SelectItem value="healthcare">Healthcare</SelectItem>
+                        <SelectItem value="networking">Networking</SelectItem>
+                        <SelectItem value="community">Community</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="capacity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Capacity</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="2000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://example.com/image.png" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Event...
+                </>
+              ) : (
+                'Create Event'
+              )}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
