@@ -3,6 +3,7 @@
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 import data from './placeholder-images.json';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export const placeholderImages = data.placeholderImages;
 
@@ -54,6 +55,7 @@ export const users: User[] = [];
 export const events: Event[] = [];
 
 export async function getUsers(): Promise<User[]> {
+    noStore();
     try {
         const querySnapshot = await getDocs(collection(db, "users"));
         const users: User[] = [];
@@ -68,6 +70,7 @@ export async function getUsers(): Promise<User[]> {
 }
 
 export async function getEvents(): Promise<Event[]> {
+    noStore();
     try {
         const querySnapshot = await getDocs(collection(db, "events"));
         const events: Event[] = [];
@@ -82,6 +85,7 @@ export async function getEvents(): Promise<Event[]> {
 }
 
 export async function getJoinRequests(): Promise<JoinRequest[]> {
+    noStore();
     try {
         const querySnapshot = await getDocs(collection(db, "joinRequests"));
         const requests: JoinRequest[] = [];
