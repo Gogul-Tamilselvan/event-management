@@ -36,6 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createEventAction } from '@/actions/create-event';
 import { useAuth } from '@/hooks/use-auth';
 import { placeholderImages } from '@/lib/placeholder-images';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Event name is required.'),
@@ -48,6 +49,11 @@ const formSchema = z.object({
   category: z.string().min(1, 'Category is required.'),
   capacity: z.coerce.number().min(1, 'Capacity must be at least 1.'),
   image: z.string().url('A valid image URL is required.'),
+  isPaid: z.boolean().default(false),
+  price: z.coerce.number().optional(),
+}).refine(data => !data.isPaid || (data.isPaid && data.price && data.price > 0), {
+    message: "Price must be greater than 0 for paid events.",
+    path: ["price"],
 });
 
 export default function CreateEventForm() {
@@ -66,8 +72,12 @@ export default function CreateEventForm() {
       category: '',
       capacity: 100,
       image: placeholderImages.find(p => p.id === 'event-1')?.imageUrl ?? '',
+      isPaid: false,
+      price: 0,
     },
   });
+
+  const isPaid = form.watch('isPaid');
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!userProfile) {
@@ -234,6 +244,42 @@ export default function CreateEventForm() {
                   </FormItem>
                 )}
               />
+            </div>
+             <div className="flex items-center space-x-2">
+                <FormField
+                control={form.control}
+                name="isPaid"
+                render={({ field }) => (
+                    <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4'>
+                        <FormControl>
+                            <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                            />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                            <FormLabel>
+                                Paid Event
+                            </FormLabel>
+                        </div>
+                    </FormItem>
+                )}
+                />
+                {isPaid && (
+                    <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                        <FormItem className='flex-1'>
+                        <FormLabel>Price (INR)</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="e.g. 500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                )}
             </div>
             <FormField
               control={form.control}

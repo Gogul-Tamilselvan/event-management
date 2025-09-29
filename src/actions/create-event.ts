@@ -14,6 +14,8 @@ const FormSchema = z.object({
     category: z.string().min(1, "Category is required."),
     capacity: z.coerce.number().min(1, "Capacity must be at least 1."),
     image: z.string().url("A valid image URL is required."),
+    isPaid: z.coerce.boolean(),
+    price: z.coerce.number().optional(),
 });
 
 type ActionResult = {
@@ -34,18 +36,21 @@ export async function createEventAction(formData: FormData, organizer: string): 
     }
     
     try {
+        const { isPaid, price, ...rest } = validatedFields.data;
         const newEvent: Omit<Event, 'id'> = {
-            title: validatedFields.data.name,
-            description: validatedFields.data.description,
-            date: validatedFields.data.date,
-            time: `${validatedFields.data.time} - ${validatedFields.data.time}`, // Placeholder for end time
-            location: validatedFields.data.location,
-            category: validatedFields.data.category,
-            capacity: validatedFields.data.capacity,
-            image: validatedFields.data.image,
+            title: rest.name,
+            description: rest.description,
+            date: rest.date,
+            time: `${rest.time} - ${rest.time}`, // Placeholder for end time
+            location: rest.location,
+            category: rest.category,
+            capacity: rest.capacity,
+            image: rest.image,
             organizer: organizer,
             attendees: 0,
             status: 'Pending',
+            isPaid: isPaid,
+            price: isPaid ? price || 0 : 0,
         };
 
         await addDoc(collection(db, "events"), newEvent);

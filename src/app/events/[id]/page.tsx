@@ -3,7 +3,7 @@
 'use client';
 
 import Image from "next/image";
-import { Calendar, MapPin, Mail, Clock, Loader2, UserPlus } from "lucide-react";
+import { Calendar, MapPin, Mail, Clock, Loader2, UserPlus, CreditCard } from "lucide-react";
 import { getEvents, getJoinRequests } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { notFound, useParams } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +29,7 @@ import { requestToJoinAction } from "@/actions/request-to-join";
 
 export default function EventPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,6 +81,7 @@ export default function EventPage() {
   const handleRequestToJoin = async () => {
     if (!userProfile) {
         toast({ title: "Please login to join", variant: "destructive"});
+        router.push('/login');
         return;
     }
     setIsSubmitting(true);
@@ -100,6 +102,33 @@ export default function EventPage() {
     }
     setIsSubmitting(false);
   };
+  
+  const handlePayment = async () => {
+    if (!userProfile) {
+        toast({ title: "Please login to join", variant: "destructive"});
+        router.push('/login');
+        return;
+    }
+    const upiId = 'your-upi-id@okhdfcbank'; // Replace with a placeholder or your actual UPI ID
+    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(event.organizer)}&am=${event.price}&cu=INR&tn=${encodeURIComponent(`Payment for ${event.title}`)}`;
+    
+    // In a real app, you'd open this URL. For this demo, we'll simulate the payment and then send the request.
+    window.open(upiUrl, '_blank');
+
+    toast({
+        title: "Waiting for payment confirmation...",
+        description: "Once your payment is complete, your request to join will be sent automatically.",
+    });
+
+    // Simulate waiting for payment webhook, then proceed
+    setTimeout(async () => {
+       await handleRequestToJoin();
+       toast({
+        title: "Payment Received!",
+        description: `Your request for ${event.title} is now pending organizer approval.`,
+        });
+    }, 3000);
+  };
 
   const handleEmailReminder = () => {
     toast({
@@ -110,7 +139,7 @@ export default function EventPage() {
 
   const renderJoinButton = () => {
       if (!user) {
-          return <Button size="lg" className="w-full" onClick={handleRequestToJoin}>Login to Join</Button>
+          return <Button size="lg" className="w-full" onClick={() => router.push('/login')}>Login to Join</Button>
       }
       if (joinRequestStatus === 'approved') {
           return <Button size="lg" className="w-full" disabled>Attending</Button>
@@ -121,6 +150,15 @@ export default function EventPage() {
       if (joinRequestStatus === 'rejected') {
           return <Button size="lg" className="w-full" variant="destructive" disabled>Request Rejected</Button>
       }
+
+      if (event.isPaid) {
+          return (
+            <Button size="lg" className="w-full" onClick={handlePayment} disabled={isSubmitting}>
+              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : <><CreditCard className="mr-2 h-4 w-4" />Pay ₹{event.price} to Join</>}
+            </Button>
+          )
+      }
+
       return (
         <Button size="lg" className="w-full" onClick={handleRequestToJoin} disabled={isSubmitting}>
           {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</> : <><UserPlus className="mr-2 h-4 w-4" />Request to Join</>}
@@ -160,6 +198,15 @@ export default function EventPage() {
                 <CardTitle className="font-headline">Event Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
+                 {event.isPaid && (
+                    <div className="flex items-start">
+                        <CreditCard className="h-5 w-5 mr-3 mt-1 text-primary" />
+                        <div>
+                            <p className="font-semibold">Price</p>
+                            <p className="text-muted-foreground font-bold text-lg">₹{event.price}</p>
+                        </div>
+                    </div>
+                )}
                 <div className="flex items-start">
                   <Calendar className="h-5 w-5 mr-3 mt-1 text-primary" />
                   <div>

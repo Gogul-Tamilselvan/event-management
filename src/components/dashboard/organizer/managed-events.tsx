@@ -52,6 +52,7 @@ export default function ManagedEvents({ events }: ManagedEventsProps) {
                 <span className="sr-only">Image</span>
               </TableHead>
               <TableHead>Event</TableHead>
+              <TableHead>Price</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="hidden md:table-cell">Attendees</TableHead>
               <TableHead>
@@ -72,6 +73,9 @@ export default function ManagedEvents({ events }: ManagedEventsProps) {
                   />
                 </TableCell>
                 <TableCell className="font-medium">{event.title}</TableCell>
+                 <TableCell>
+                  {event.isPaid ? `₹${event.price}` : 'Free'}
+                </TableCell>
                 <TableCell>
                   <Badge variant={statusVariant[event.status]}>
                     {event.status}

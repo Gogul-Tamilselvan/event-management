@@ -29,6 +29,8 @@ export type Event = {
   status: 'Approved' | 'Pending' | 'Rejected';
   category: string;
   image: string;
+  isPaid: boolean;
+  price: number;
 };
 
 export type JoinRequest = {
