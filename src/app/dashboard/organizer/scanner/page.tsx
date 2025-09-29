@@ -86,6 +86,3 @@ export default function ScannerPage() {
     </Card>
   );
 }
-
-
-
