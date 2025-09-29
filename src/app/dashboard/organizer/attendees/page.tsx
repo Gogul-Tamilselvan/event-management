@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { JoinRequest } from '@/lib/data';
 import { getJoinRequests } from '@/lib/data';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { Loader2 } from 'lucide-react';
 import { updateJoinRequestAction } from '@/actions/update-join-request';
 import { useToast } from '@/hooks/use-toast';

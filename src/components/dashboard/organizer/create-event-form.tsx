@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { createEventAction } from '@/actions/create-event';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { placeholderImages } from '@/lib/placeholder-images';
 import { Checkbox } from '@/components/ui/checkbox';
 

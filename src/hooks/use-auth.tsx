@@ -1,14 +1,26 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from '@/lib/firebase';
-import { type User as AppUser } from '@/lib/data';
+import type { User as AppUser } from '@/lib/data';
 
-export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+interface AuthContextType {
+  user: FirebaseUser | null;
+  userProfile: AppUser | null;
+  loading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  userProfile: null,
+  loading: true,
+});
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,15 +33,12 @@ export function useAuth() {
           if (userDoc.exists()) {
             setUserProfile({ id: userDoc.id, ...userDoc.data() } as AppUser);
           } else {
-            // This case can happen if a user authenticates but their profile is not in Firestore yet.
-            // For this app, we assume a user record is created on signup.
              console.warn("User document not found in Firestore for UID:", user.uid);
-             // You might want to create a default profile here or handle it as an error state.
              const newUserProfile: AppUser = {
                 id: user.uid,
                 email: user.email || '',
                 name: user.displayName || 'New User',
-                role: 'Attendee', // Default role
+                role: 'Attendee',
                 avatar: user.photoURL || '',
                 status: 'Active',
                 lastLogin: new Date().toISOString()
@@ -50,5 +59,13 @@ export function useAuth() {
     return () => unsubscribe();
   }, []);
 
-  return { user, userProfile, loading };
-}
+  return (
+    <AuthContext.Provider value={{ user, userProfile, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  return useContext(AuthContext);
+};

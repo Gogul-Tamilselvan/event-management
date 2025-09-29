@@ -20,7 +20,7 @@ import {
   import { getEvents, type Event } from '@/lib/data';
   import ManagedEvents from '@/components/dashboard/organizer/managed-events';
   import CreateEventForm from '@/components/dashboard/organizer/create-event-form';
-  import { useAuth } from '@/hooks/use-auth';
+  import { useAuth } from '@/hooks/use-auth.tsx';
 
   
   export default function OrganizerDashboardPage() {

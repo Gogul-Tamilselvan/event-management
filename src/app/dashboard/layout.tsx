@@ -11,7 +11,6 @@ import {
   CalendarPlus,
   Settings,
   Bell,
-  User,
   PanelLeft,
   Menu,
   LogOut,
@@ -38,7 +37,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/layout/logo';
 import AuthGuard from '@/components/auth/auth-guard';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { auth } from '@/lib/firebase';
 import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -129,16 +128,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                 {loading ? (
                     <>
-                        <Skeleton className="h-8 w-full" />
-                        <Skeleton className="h-8 w-full" />
-                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-10 my-1 w-full" />
+                        <Skeleton className="h-10 my-1 w-full" />
+                        <Skeleton className="h-10 my-1 w-full" />
                     </>
                 ) : (
                     navItems.map((item) => (
                     <Link
                         key={item.label}
                         href={item.href}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === item.href ? 'bg-muted text-primary' : 'text-muted-foreground'}`}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === item.href || (item.href.includes('#') && pathname.startsWith(item.href.split('#')[0])) ? 'bg-muted text-primary' : 'text-muted-foreground'}`}
                     >
                         {item.icon}
                         {item.label}
@@ -201,7 +200,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild><Link href="/account">Settings</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link href="/support">Support</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />

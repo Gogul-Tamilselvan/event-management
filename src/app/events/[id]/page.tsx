@@ -31,7 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import type { Event, JoinRequest } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth.tsx";
 import { requestToJoinAction } from "@/actions/request-to-join";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

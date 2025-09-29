@@ -12,11 +12,9 @@ import {
 
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import { Button } from '@/components/ui/button';
@@ -28,7 +26,7 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Logo } from './logo';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { auth } from '@/lib/firebase';
 import {
   DropdownMenu,
@@ -41,27 +39,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 
-const components: { title: string; href: string; description: string }[] = [
-  {
-    title: 'Admin Dashboard',
-    href: '/dashboard/admin',
-    description: 'Manage users, approve events, and view site-wide analytics.',
-  },
-  {
-    title: 'Organizer Dashboard',
-    href: '/dashboard/organizer',
-    description: 'Create and manage your events, track attendance and more.',
-  },
-  {
-    title: 'Attendee Dashboard',
-    href: '/dashboard/attendee',
-    description: 'View your registered events and manage your RSVPs.',
-  },
-];
-
 export default function Header() {
   const [isScrolled, setIsScrolled] = React.useState(false);
   const { user, userProfile, loading } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const handleLogout = async () => {
     await auth.signOut();
@@ -76,16 +57,24 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/events', label: 'Events' },
+    { href: '/#features', label: 'Features' },
+  ];
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
   return (
     <header
       className={cn(
         'sticky top-0 z-50 w-full transition-all duration-300',
         isScrolled
-          ? 'border-b bg-card/80 backdrop-blur-lg'
-          : 'bg-background/80'
+          ? 'border-b bg-background/80 backdrop-blur-lg'
+          : 'bg-transparent'
       )}
     >
-      <div className="container flex h-16 items-center">
+      <div className="container flex h-20 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Logo className="text-primary" />
@@ -97,52 +86,19 @@ export default function Header() {
           </Link>
           <NavigationMenu>
             <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  href="/"
-                  className={cn(
-                    navigationMenuTriggerStyle(),
-                    'bg-transparent'
-                  )}
-                >
-                  Home
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  href="/events"
-                  className={cn(
-                    navigationMenuTriggerStyle(),
-                    'bg-transparent'
-                  )}
-                >
-                  Events
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-               {user && (
-                 <NavigationMenuItem>
+              {navLinks.map(link => (
+                <NavigationMenuItem key={link.href}>
                     <NavigationMenuLink
-                        href="/dashboard"
+                        href={link.href}
                         className={cn(
                             navigationMenuTriggerStyle(),
                             'bg-transparent'
                         )}
                         >
-                        Dashboard
+                        {link.label}
                     </NavigationMenuLink>
                 </NavigationMenuItem>
-               )}
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  href="/support"
-                  className={cn(
-                    navigationMenuTriggerStyle(),
-                    'bg-transparent'
-                  )}
-                >
-                  Support
-                </NavigationMenuLink>
-              </NavigationMenuItem>
+              ))}
             </NavigationMenuList>
           </NavigationMenu>
         </div>
@@ -158,7 +114,7 @@ export default function Header() {
             </span>
           </Link>
 
-          <Sheet>
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
@@ -173,23 +129,24 @@ export default function Header() {
                 <Logo />
               </SheetHeader>
               <div className="mt-4 flex flex-col space-y-4">
-                <Link href="/">Home</Link>
-                <Link href="/events">Events</Link>
+                 {navLinks.map(link => (
+                   <Link key={link.href} href={link.href} onClick={closeMobileMenu}>{link.label}</Link>
+                 ))}
                 {user ? (
                     <>
-                        <Link href="/dashboard">Dashboard</Link>
-                        <Link href="/account">Account</Link>
+                        <hr />
+                        <Link href="/dashboard" onClick={closeMobileMenu}>Dashboard</Link>
+                        <Link href="/account" onClick={closeMobileMenu}>Account</Link>
                         <Button onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" />Logout</Button>
                     </>
                 ) : (
                     <>
-                        <Link href="/support">Support</Link>
                         <hr />
                         <Button asChild>
-                        <Link href="/login">Login</Link>
+                          <Link href="/login" onClick={closeMobileMenu}>Login</Link>
                         </Button>
                         <Button asChild variant="secondary">
-                        <Link href="/signup">Sign Up</Link>
+                          <Link href="/signup" onClick={closeMobileMenu}>Sign Up</Link>
                         </Button>
                     </>
                 )}
@@ -202,7 +159,7 @@ export default function Header() {
          {loading ? (
              <>
                 <Skeleton className="h-9 w-24" />
-                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-9 rounded-full" />
              </>
          ) : user ? (
             <DropdownMenu>
@@ -212,7 +169,7 @@ export default function Header() {
                         <AvatarImage src={user.photoURL ?? ''} alt={userProfile?.name ?? ''} />
                         <AvatarFallback>{userProfile?.name?.charAt(0) ?? 'U'}</AvatarFallback>
                     </Avatar>
-                  <span>{userProfile?.name ?? user.email}</span>
+                  <span className="hidden lg:inline">{userProfile?.name ?? user.email}</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -221,7 +178,6 @@ export default function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild><Link href="/dashboard">Dashboard</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/account">Settings</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link href="/support">Support</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -236,7 +192,7 @@ export default function Header() {
                   Login
                 </Link>
               </Button>
-              <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
+              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Link href="/signup">
                   <UserPlus className="mr-2 h-4 w-4" /> Sign Up
                 </Link>
@@ -248,29 +204,3 @@ export default function Header() {
     </header>
   );
 }
-
-const ListItem = React.forwardRef<
-  React.ElementRef<'a'>,
-  React.ComponentPropsWithoutRef<'a'>
->(({ className, title, children, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <Link
-          ref={ref}
-          className={cn(
-            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
-            className
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </Link>
-      </NavigationMenuLink>
-    </li>
-  );
-});
-ListItem.displayName = 'ListItem';
