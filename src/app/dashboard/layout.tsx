@@ -10,6 +10,7 @@ import {
   User,
   PanelLeft,
   Search,
+  Menu,
 } from 'lucide-react';
 import {
   DropdownMenu,
