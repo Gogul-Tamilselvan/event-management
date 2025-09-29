@@ -1,10 +1,13 @@
 
+'use client';
+
+import { useEffect, useState } from 'react';
 import {
     Activity,
     Users,
     CalendarCheck,
-    PlusCircle,
     Clock,
+    Loader2,
   } from 'lucide-react'
   
   import {
@@ -14,15 +17,34 @@ import {
     CardHeader,
     CardTitle,
   } from '@/components/ui/card'
-  import { getEvents } from '@/lib/data';
+  import { getEvents, type Event } from '@/lib/data';
   import ManagedEvents from '@/components/dashboard/organizer/managed-events';
   import CreateEventForm from '@/components/dashboard/organizer/create-event-form';
+  import { useAuth } from '@/hooks/use-auth';
+
   
-  export default async function OrganizerDashboardPage() {
-    const allEvents = await getEvents();
-    // In a real app, this should be filtered by the logged-in organizer's ID
-    const organizerEvents = allEvents.filter(e => e.organizer === 'Jane Smith' || e.organizer === 'Organizer One');
-    const totalAttendees = organizerEvents.reduce((acc, event) => acc + event.attendees, 0);
+  export default function OrganizerDashboardPage() {
+    const { userProfile } = useAuth();
+    const [organizerEvents, setOrganizerEvents] = useState<Event[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchOrganizerEvents() {
+            if (userProfile) {
+                const allEvents = await getEvents();
+                const filteredEvents = allEvents.filter(e => e.organizer === userProfile.name);
+                setOrganizerEvents(filteredEvents);
+            }
+            setLoading(false);
+        }
+        fetchOrganizerEvents();
+    }, [userProfile]);
+    
+    if (loading) {
+        return <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>
+    }
+
+    const totalAttendees = organizerEvents.reduce((acc, event) => acc + (event.attendees || 0), 0);
     const approvedEvents = organizerEvents.filter(e => e.status === 'Approved').length;
     const pendingEvents = organizerEvents.filter(e => e.status === 'Pending').length;
 
