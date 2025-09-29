@@ -1,10 +1,11 @@
+
 'use server';
 
 import { getEvents, getJoinRequests } from '@/lib/data';
 import type { Event, JoinRequest } from '@/lib/data';
 
 type AttendeeDashboardData = {
-  registeredEvents: Event[];
+  registeredEvents: (Event & { joinRequestId: string })[];
   pendingRequests: JoinRequest[];
 };
 
@@ -21,11 +22,16 @@ export async function getAttendeeDashboardDataAction(userId: string): Promise<Ac
 
     const userRequests = allRequests.filter(req => req.attendeeId === userId);
     
-    const approvedRequestEventIds = userRequests
-        .filter(req => req.status === 'approved')
-        .map(req => req.eventId);
+    const approvedRequests = userRequests.filter(req => req.status === 'approved');
 
-    const userRegisteredEvents = allEvents.filter(event => approvedRequestEventIds.includes(event.id));
+    const userRegisteredEvents = approvedRequests.map(req => {
+        const event = allEvents.find(e => e.id === req.eventId);
+        return {
+            ...event,
+            joinRequestId: req.id,
+        } as (Event & { joinRequestId: string });
+    }).filter(e => e.id); // Filter out any cases where event was not found
+
     const userPendingRequests = userRequests.filter(req => req.status === 'pending');
 
     return { 

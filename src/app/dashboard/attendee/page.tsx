@@ -1,3 +1,4 @@
+
 'use client';
 
 import RegisteredEvents from "@/components/dashboard/attendee/registered-events";
@@ -8,10 +9,12 @@ import { useAuth } from "@/hooks/use-auth.tsx";
 import { getAttendeeDashboardDataAction } from "@/actions/get-attendee-dashboard-data";
 import { useToast } from "@/hooks/use-toast";
 
+type RegisteredEvent = Event & { joinRequestId: string };
+
 export default function AttendeeDashboardPage() {
     const { user } = useAuth();
     const { toast } = useToast();
-    const [registeredEvents, setRegisteredEvents] = useState<Event[]>([]);
+    const [registeredEvents, setRegisteredEvents] = useState<RegisteredEvent[]>([]);
     const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
 

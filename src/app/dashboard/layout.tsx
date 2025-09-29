@@ -17,6 +17,7 @@ import {
   LogOut,
   Loader2,
   UserCheck,
+  QrCode,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -61,6 +62,7 @@ const NAV_ITEMS = {
     { href: '/dashboard/organizer#create-event', icon: <CalendarPlus className="h-5 w-5" />, label: 'Create Event' },
     { href: '/dashboard/organizer#my-events', icon: <CheckSquare className="h-5 w-5" />, label: 'My Events' },
     { href: '/dashboard/organizer/attendees', icon: <UserCheck className="h-5 w-5" />, label: 'Attendees' },
+    { href: '/dashboard/organizer/scanner', icon: <QrCode className="h-5 w-5" />, label: 'Scan Attendance' },
     { href: '/account', icon: <Settings className="h-5 w-5" />, label: 'Settings' },
   ],
   attendee: [

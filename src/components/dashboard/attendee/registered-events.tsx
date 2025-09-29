@@ -3,24 +3,26 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, Mail, MapPin, Loader2 } from "lucide-react";
-import type { Event } from "@/lib/data";
+import { Calendar, MapPin, QrCode, Loader2 } from "lucide-react";
+import type { Event, JoinRequest } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { createGoogleWalletAction } from "@/actions/google-wallet";
 import { useToast } from "@/hooks/use-toast";
 
 type RegisteredEventsProps = {
-  events: Event[];
+  events: (Event & { joinRequestId: string })[];
 };
 
 export default function RegisteredEvents({ events }: RegisteredEventsProps) {
@@ -28,12 +30,6 @@ export default function RegisteredEvents({ events }: RegisteredEventsProps) {
   const { toast } = useToast();
   const [loadingWallet, setLoadingWallet] = useState<Record<string, boolean>>({});
 
-  const generateCalendarLink = (event: Event) => {
-    const startTime = new Date(`${event.date}T${event.time.split(' - ')[0]}`).toISOString().replace(/-|:|\.\d\d\d/g, '');
-    const endTime = new Date(`${event.date}T${event.time.split(' - ')[1]}`).toISOString().replace(/-|:|\.\d\d\d/g, '');
-    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${startTime}/${endTime}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}`;
-  };
-  
   const handleAddToWallet = async (event: Event) => {
     if (!userProfile) return;
     setLoadingWallet(prev => ({...prev, [event.id]: true}));
@@ -51,6 +47,11 @@ export default function RegisteredEvents({ events }: RegisteredEventsProps) {
     }
 
     setLoadingWallet(prev => ({...prev, [event.id]: false}));
+  }
+
+  const getQrCodeUrl = (joinRequestId: string) => {
+      const baseUrl = "https://api.qrserver.com/v1/create-qr-code/";
+      return `${baseUrl}?size=250x250&data=${encodeURIComponent(joinRequestId)}`;
   }
 
   return (
@@ -85,24 +86,34 @@ export default function RegisteredEvents({ events }: RegisteredEventsProps) {
             <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
           </CardContent>
           <CardFooter className="flex flex-wrap gap-2">
+             <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="outline">
+                        <QrCode className="mr-2 h-4 w-4" />
+                        Show QR Code
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                    <DialogTitle>Attendee QR Code</DialogTitle>
+                    <DialogDescription>
+                        The event organizer will scan this code to check you in.
+                    </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center justify-center p-4">
+                        <Image
+                            src={getQrCodeUrl(event.joinRequestId)}
+                            alt="Attendee QR Code"
+                            width={250}
+                            height={250}
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
             <Button onClick={() => handleAddToWallet(event)} disabled={loadingWallet[event.id]}>
               {loadingWallet[event.id] ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Add to Google Wallet
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Calendar className="mr-2 h-4 w-4" /> Add to Calendar
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem asChild>
-                  <a href={generateCalendarLink(event)} target="_blank" rel="noopener noreferrer">Google Calendar</a>
-                </DropdownMenuItem>
-                <DropdownMenuItem>Outlook</DropdownMenuItem>
-                <DropdownMenuItem>iCal</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </CardFooter>
         </Card>
       ))}

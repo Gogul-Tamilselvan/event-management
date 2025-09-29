@@ -43,7 +43,7 @@ export type JoinRequest = {
     attendeeName: string;
     attendeeEmail: string;
     organizerId: string;
-    status: 'pending' | 'approved' | 'rejected';
+    status: 'pending' | 'approved' | 'rejected' | 'attended';
     requestedAt: string;
 };
 
