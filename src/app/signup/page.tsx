@@ -21,19 +21,61 @@ import { Label } from '@/components/ui/label';
 import { User, CalendarPlus } from 'lucide-react';
 import { Logo } from '@/components/layout/logo';
 import { Separator } from '@/components/ui/separator';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import type { User as AppUser } from '@/lib/data';
 
 type Role = 'Attendee' | 'Organizer';
 
 const RoleForm = ({ role }: { role: Role }) => {
-    const handleSignup = (e: React.FormEvent<HTMLFormElement>) => {
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // In a real app, you would handle signup here and redirect
-        const rolePath = role.toLowerCase();
-        window.location.href = `/dashboard/${rolePath}`;
+        setIsLoading(true);
+        const formData = new FormData(e.currentTarget);
+        const name = formData.get('name') as string;
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
+
+        if (!name || !email || !password) {
+            toast({ title: 'Error', description: 'All fields are required.', variant: 'destructive' });
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            await updateProfile(user, { displayName: name });
+            
+            const newUserProfile: AppUser = {
+                id: user.uid,
+                email: user.email || '',
+                name: name,
+                role: role,
+                avatar: user.photoURL || '',
+                status: 'Active',
+                lastLogin: new Date().toISOString()
+            };
+
+            await setDoc(doc(db, "users", user.uid), newUserProfile);
+            window.location.href = '/dashboard';
+        } catch (error: any) {
+            console.error("Signup Error:", error);
+            toast({
+                title: "Sign-up Failed",
+                description: error.message,
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
   return (
@@ -41,19 +83,19 @@ const RoleForm = ({ role }: { role: Role }) => {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor={`${role}-name`}>Full Name</Label>
-          <Input id={`${role}-name`} type="text" placeholder="John Doe" required />
+          <Input id={`${role}-name`} name="name" type="text" placeholder="John Doe" required />
         </div>
         <div className="space-y-2">
           <Label htmlFor={`${role}-email`}>Email</Label>
-          <Input id={`${role}-email`} type="email" placeholder="m@example.com" required />
+          <Input id={`${role}-email`} name="email" type="email" placeholder="m@example.com" required />
         </div>
         <div className="space-y-2">
           <Label htmlFor={`${role}-password`}>Password</Label>
-          <Input id={`${role}-password`} type="password" required />
+          <Input id={`${role}-password`} name="password" type="password" required />
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-4">
-        <Button className="w-full" type="submit">Create {role} Account</Button>
+        <Button className="w-full" type="submit" disabled={isLoading}>{isLoading ? 'Creating account...' : `Create ${role} Account`}</Button>
       </CardFooter>
     </form>
   );
@@ -62,12 +104,27 @@ const RoleForm = ({ role }: { role: Role }) => {
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [selectedRole, setSelectedRole] = useState<Role>('Attendee');
 
   const handleGoogleSignUp = async () => {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      const newUserProfile: AppUser = {
+        id: user.uid,
+        email: user.email || '',
+        name: user.displayName || 'New User',
+        role: selectedRole,
+        avatar: user.photoURL || '',
+        status: 'Active',
+        lastLogin: new Date().toISOString()
+      };
+      
+      await setDoc(doc(db, "users", user.uid), newUserProfile, { merge: true });
+
       // Redirect to a protected route or dashboard on successful signup
       window.location.href = '/dashboard';
     } catch (error: any) {
@@ -84,7 +141,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <Tabs defaultValue="Attendee" className="w-full max-w-md">
+      <Tabs defaultValue="Attendee" className="w-full max-w-md" onValueChange={(value) => setSelectedRole(value as Role)}>
         <Card>
           <CardHeader className="text-center">
             <div className="flex justify-center items-center mb-4">

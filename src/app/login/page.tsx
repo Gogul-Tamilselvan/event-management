@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { User, CalendarPlus } from 'lucide-react';
 import { Logo } from '@/components/layout/logo';
 import { Separator } from '@/components/ui/separator';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -29,11 +29,35 @@ import { useToast } from '@/hooks/use-toast';
 type Role = 'Attendee' | 'Organizer';
 
 const RoleForm = ({ role }: { role: Role }) => {
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // In a real app, you would handle login here and redirect
-    const rolePath = role.toLowerCase();
-    window.location.href = `/dashboard/${rolePath}`;
+    setIsLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    if (!email || !password) {
+        toast({ title: 'Error', description: 'Email and password are required.', variant: 'destructive' });
+        setIsLoading(false);
+        return;
+    }
+    
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = '/dashboard';
+    } catch (error: any) {
+        console.error("Login Error:", error);
+        toast({
+            title: "Login Failed",
+            description: error.message,
+            variant: "destructive",
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
   
   return (
@@ -41,15 +65,15 @@ const RoleForm = ({ role }: { role: Role }) => {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor={`${role}-email`}>Email</Label>
-          <Input id={`${role}-email`} type="email" placeholder="m@example.com" required />
+          <Input id={`${role}-email`} name="email" type="email" placeholder="m@example.com" required />
         </div>
         <div className="space-y-2">
           <Label htmlFor={`${role}-password`}>Password</Label>
-          <Input id={`${role}-password`} type="password" required />
+          <Input id={`${role}-password`} name="password" type="password" required />
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-4">
-        <Button className="w-full" type="submit">Login as {role}</Button>
+        <Button className="w-full" type="submit" disabled={isLoading}>{isLoading ? 'Logging in...' : `Login as ${role}`}</Button>
         <p className="text-xs text-muted-foreground">Forgot your password?</p>
       </CardFooter>
     </form>
