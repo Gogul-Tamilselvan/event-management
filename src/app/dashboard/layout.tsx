@@ -13,11 +13,11 @@ import {
   Settings,
   Bell,
   PanelLeft,
-  Menu,
   LogOut,
   Loader2,
   UserCheck,
   QrCode,
+  User,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -52,22 +52,19 @@ type DashboardLayoutProps = {
 const NAV_ITEMS = {
   admin: [
     { href: '/dashboard/admin', icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
-    { href: '/dashboard/admin#event-approvals', icon: <CheckSquare className="h-5 w-5" />, label: 'Event Approvals' },
-    { href: '/dashboard/admin#user-management', icon: <Users className="h-5 w-5" />, label: 'User Management' },
+    { href: '/dashboard/admin#event-approvals', icon: <CheckSquare className="h-5 w-5" />, label: 'Approvals' },
+    { href: '/dashboard/admin#user-management', icon: <Users className="h-5 w-5" />, label: 'Users' },
     { href: '/dashboard/admin#analytics', icon: <BarChart className="h-5 w-5" />, label: 'Analytics' },
-    { href: '/account', icon: <Settings className="h-5 w-5" />, label: 'Settings' },
   ],
   organizer: [
     { href: '/dashboard/organizer', icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
-    { href: '/dashboard/organizer#create-event', icon: <CalendarPlus className="h-5 w-5" />, label: 'Create Event' },
-    { href: '/dashboard/organizer#my-events', icon: <CheckSquare className="h-5 w-5" />, label: 'My Events' },
+    { href: '/dashboard/organizer#create-event', icon: <CalendarPlus className="h-5 w-5" />, label: 'Create' },
     { href: '/dashboard/organizer/attendees', icon: <UserCheck className="h-5 w-5" />, label: 'Attendees' },
-    { href: '/dashboard/organizer/scanner', icon: <QrCode className="h-5 w-5" />, label: 'Scan Attendance' },
-    { href: '/account', icon: <Settings className="h-5 w-5" />, label: 'Settings' },
+    { href: '/dashboard/organizer/scanner', icon: <QrCode className="h-5 w-5" />, label: 'Scanner' },
   ],
   attendee: [
     { href: '/dashboard/attendee', icon: <Home className="h-5 w-5" />, label: 'My Events' },
-    { href: '/account', icon: <Settings className="h-5 w-5" />, label: 'Profile' },
+    { href: '/account', icon: <User className="h-5 w-5" />, label: 'Profile' },
   ],
 };
 
@@ -91,7 +88,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const trail = pathParts.map((part, index) => {
         const href = `/${pathParts.slice(0, index + 1).join('/')}`;
         const isLast = index === pathParts.length - 1;
-        const text = part.charAt(0).toUpperCase() + part.slice(1);
+        const text = part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' ');
 
         return (
             <React.Fragment key={href}>
@@ -112,31 +109,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return <Breadcrumb className="hidden md:flex"><BreadcrumbList>{trail}</BreadcrumbList></Breadcrumb>;
   }
 
-  return (
-    <AuthGuard>
-      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-        <div className="hidden border-r bg-muted/40 md:block">
-          <div className="flex h-full max-h-screen flex-col gap-2">
-            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-              <Link href="/" className="flex items-center gap-2 font-semibold">
-                <Logo className="h-6 w-6 text-primary" />
-                <span className="font-headline">Zenith Events</span>
-              </Link>
-              <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-                <Bell className="h-4 w-4" />
-                <span className="sr-only">Toggle notifications</span>
-              </Button>
-            </div>
-            <div className="flex-1">
-              <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                {loading ? (
-                    <>
-                        <Skeleton className="h-10 my-1 w-full" />
-                        <Skeleton className="h-10 my-1 w-full" />
-                        <Skeleton className="h-10 my-1 w-full" />
-                    </>
-                ) : (
-                    navItems.map((item) => (
+  const DesktopSidebar = () => (
+     <div className="hidden border-r bg-muted/40 md:block">
+        <div className="flex h-full max-h-screen flex-col gap-2">
+        <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+            <Link href="/" className="flex items-center gap-2 font-semibold">
+            <Logo className="h-6 w-6 text-primary" />
+            <span className="font-headline">Zenith Events</span>
+            </Link>
+            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
+            <Bell className="h-4 w-4" />
+            <span className="sr-only">Toggle notifications</span>
+            </Button>
+        </div>
+        <div className="flex-1">
+            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+            {loading ? (
+                <>
+                    <Skeleton className="h-10 my-1 w-full" />
+                    <Skeleton className="h-10 my-1 w-full" />
+                    <Skeleton className="h-10 my-1 w-full" />
+                </>
+            ) : (
+                <>
+                 {NAV_ITEMS[userRole]?.map((item) => (
                     <Link
                         key={item.label}
                         href={item.href}
@@ -145,48 +141,62 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         {item.icon}
                         {item.label}
                     </Link>
-                    ))
-                )}
-              </nav>
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-col">
-          <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0 md:hidden"
-                >
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="flex flex-col">
-                <nav className="grid gap-2 text-lg font-medium">
-                  <Link
-                    href="#"
-                    className="flex items-center gap-2 text-lg font-semibold"
-                  >
-                    <Logo className="h-6 w-6 text-primary" />
-                    <span className="font-headline">Zenith Events</span>
-                  </Link>
-                  {navItems.map((item) => (
+                    ))}
                     <Link
-                      key={item.label}
-                      href={item.href}
-                      className={`mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 hover:text-foreground ${pathname === item.href ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
+                        href="/account"
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === '/account' ? 'bg-muted text-primary' : 'text-muted-foreground'}`}
                     >
-                      {item.icon}
-                      {item.label}
+                        <Settings className="h-5 w-5" />
+                        Settings
                     </Link>
-                  ))}
-                </nav>
-              </SheetContent>
-            </Sheet>
-            <div className="w-full flex-1">
+                </>
+            )}
+            </nav>
+        </div>
+        </div>
+      </div>
+  )
+
+  const MobileBottomNav = () => (
+      <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t md:hidden">
+          <div className="grid h-full max-w-lg grid-cols-5 mx-auto font-medium">
+                {navItems.map((item) => (
+                     <Link key={item.label} href={item.href} className={`inline-flex flex-col items-center justify-center px-5 hover:bg-muted group ${pathname === item.href || (item.href.includes('#') && pathname.startsWith(item.href.split('#')[0])) ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {item.icon}
+                        <span className="text-xs">{item.label}</span>
+                    </Link>
+                ))}
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button type="button" className="inline-flex flex-col items-center justify-center px-5 hover:bg-muted group text-muted-foreground">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={user?.photoURL ?? ''} alt={userProfile?.name ?? ''} />
+                                <AvatarFallback>{userProfile?.name?.charAt(0) ?? 'U'}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs">Profile</span>
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className='mb-2'>
+                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild><Link href="/account">Settings</Link></DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleLogout}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Logout
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+          </div>
+      </div>
+  )
+
+  return (
+    <AuthGuard>
+      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <DesktopSidebar />
+        <div className="flex flex-col">
+          <header className="hidden h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 md:flex">
+             <div className="w-full flex-1">
               <BreadcrumbTrail />
             </div>
             <DropdownMenu>
@@ -211,10 +221,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 pb-20 md:pb-6">
             {loading ? <div className="flex items-center justify-center h-full w-full"><Loader2 className="h-8 w-8 animate-spin" /></div> : children}
           </main>
         </div>
+        <MobileBottomNav />
       </div>
     </AuthGuard>
   );
