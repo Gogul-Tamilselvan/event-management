@@ -94,7 +94,7 @@ export default function Header() {
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link href="/" legacyBehavior passHref>
+                <Link href="/" asChild>
                   <NavigationMenuLink
                     className={cn(
                       navigationMenuTriggerStyle(),
@@ -128,7 +128,7 @@ export default function Header() {
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link href="/support" legacyBehavior passHref>
+                <Link href="/support" asChild>
                   <NavigationMenuLink
                     className={cn(
                       navigationMenuTriggerStyle(),
