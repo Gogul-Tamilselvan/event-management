@@ -1,3 +1,4 @@
+
 import {
     Activity,
     Users,
@@ -12,12 +13,13 @@ import {
     CardHeader,
     CardTitle,
   } from '@/components/ui/card'
-  import { events } from '@/lib/data';
+  import { getEvents } from '@/lib/data';
   import ManagedEvents from '@/components/dashboard/organizer/managed-events';
   import CreateEventForm from '@/components/dashboard/organizer/create-event-form';
   
-  export default function OrganizerDashboardPage() {
-    const organizerEvents = events.filter(e => e.organizer === 'Jane Smith' || e.organizer === 'Organizer One');
+  export default async function OrganizerDashboardPage() {
+    const allEvents = await getEvents();
+    const organizerEvents = allEvents.filter(e => e.organizer === 'Jane Smith' || e.organizer === 'Organizer One');
     const totalAttendees = organizerEvents.reduce((acc, event) => acc + event.attendees, 0);
     const approvedEvents = organizerEvents.filter(e => e.status === 'Approved').length;
 
@@ -88,4 +90,3 @@ import {
       </div>
     )
   }
-  

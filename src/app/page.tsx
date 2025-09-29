@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -26,6 +27,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { placeholderImages } from '@/lib/placeholder-images';
+import { getEvents } from '@/lib/data';
 
 const features = [
   {
@@ -54,41 +56,6 @@ const features = [
   },
 ];
 
-const upcomingEvents = [
-  {
-    id: '1',
-    title: 'Annual Tech Summit 2024',
-    date: 'October 15-17, 2024',
-    location: 'Silicon Valley Convention Center',
-    image: placeholderImages.find(p => p.id === 'event-1'),
-    category: 'Technology',
-  },
-  {
-    id: '2',
-    title: 'Global Marketing Expo',
-    date: 'November 5-7, 2024',
-    location: 'New York City, NY',
-    image: placeholderImages.find(p => p.id === 'event-2'),
-    category: 'Marketing',
-  },
-  {
-    id: '3',
-    title: 'Future of Healthcare Conference',
-    date: 'December 2-4, 2024',
-    location: 'Chicago, IL',
-    image: placeholderImages.find(p => p.id === 'event-3'),
-    category: 'Healthcare',
-  },
-  {
-    id: '4',
-    title: 'Innovators & Investors Gala',
-    date: 'January 20, 2025',
-    location: 'The Grand Ballroom, San Francisco',
-    image: placeholderImages.find(p => p.id === 'event-4'),
-    category: 'Networking',
-  },
-];
-
 const testimonials = [
   {
     name: 'Sarah L.',
@@ -113,8 +80,10 @@ const testimonials = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
   const heroImage = placeholderImages.find(p => p.id === 'hero-background');
+  const upcomingEvents = (await getEvents()).slice(0, 4);
+
   return (
     <div className="flex flex-col">
       <section className="relative h-[60vh] md:h-[80vh] w-full">
@@ -202,15 +171,12 @@ export default function Home() {
                   <div className="p-1">
                     <Card className="overflow-hidden h-full flex flex-col">
                       <div className="relative h-48 w-full">
-                        {event.image && (
-                          <Image
-                            src={event.image.imageUrl}
+                        <Image
+                            src={event.image}
                             alt={event.title}
-                            data-ai-hint={event.image.imageHint}
                             fill
                             className="object-cover"
                           />
-                        )}
                          <div className="absolute top-2 right-2">
                            <Badge variant="secondary">{event.category}</Badge>
                          </div>
@@ -219,7 +185,7 @@ export default function Home() {
                         <CardTitle className="font-headline text-xl">
                           {event.title}
                         </CardTitle>
-                        <CardDescription>{event.date}</CardDescription>
+                        <CardDescription>{new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</CardDescription>
                       </CardHeader>
                       <CardContent className="flex-grow">
                         <p className="text-muted-foreground">

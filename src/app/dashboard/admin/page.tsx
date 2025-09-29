@@ -1,3 +1,4 @@
+
 import {
     Activity,
     Users,
@@ -12,12 +13,17 @@ import {
     CardHeader,
     CardTitle,
   } from '@/components/ui/card'
-  import { analyticsData } from '@/lib/data';
+  import { analyticsData, getEvents, getUsers } from '@/lib/data';
   import { AnalyticsCharts } from '@/components/dashboard/admin/analytics-charts';
   import { UserManagement } from '@/components/dashboard/admin/user-management';
   import EventApprovalForm from '@/components/dashboard/admin/event-approval-form';
   
-  export default function AdminDashboardPage() {
+  export default async function AdminDashboardPage() {
+    const users = await getUsers();
+    const events = await getEvents();
+    const pendingApprovals = events.filter(e => e.status === 'Pending').length;
+    const activeEvents = events.filter(e => e.status === 'Approved').length;
+
     return (
         <>
             <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
@@ -29,7 +35,7 @@ import {
                     <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.totalUsers.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">{users.length.toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">
                     +20.1% from last month
                     </p>
@@ -43,7 +49,7 @@ import {
                     <CalendarCheck className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.totalEvents}</div>
+                    <div className="text-2xl font-bold">{events.length}</div>
                     <p className="text-xs text-muted-foreground">
                     +15 since last month
                     </p>
@@ -55,7 +61,7 @@ import {
                     <Activity className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">+{analyticsData.activeEvents}</div>
+                    <div className="text-2xl font-bold">+{activeEvents}</div>
                     <p className="text-xs text-muted-foreground">
                     Currently running
                     </p>
@@ -67,7 +73,7 @@ import {
                     <AlertCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold text-destructive">+{analyticsData.pendingApprovals}</div>
+                    <div className="text-2xl font-bold text-destructive">+{pendingApprovals}</div>
                     <p className="text-xs text-muted-foreground">
                     Require manual review
                     </p>
@@ -97,9 +103,8 @@ import {
                 </Card>
             </div>
             <div className="grid gap-4 md:gap-8">
-                 <UserManagement />
+                 <UserManagement users={users} />
             </div>
       </>
     )
   }
-  

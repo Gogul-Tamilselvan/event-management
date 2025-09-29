@@ -1,6 +1,7 @@
+
 import Image from "next/image";
 import { Calendar, MapPin, Mail, Clock } from "lucide-react";
-import { events } from "@/lib/data";
+import { getEvents } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,7 +24,8 @@ type EventPageProps = {
   };
 };
 
-export default function EventPage({ params }: EventPageProps) {
+export default async function EventPage({ params }: EventPageProps) {
+  const events = await getEvents();
   const event = events.find((e) => e.id === params.id);
 
   if (!event) {

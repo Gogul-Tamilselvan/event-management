@@ -1,9 +1,11 @@
-import RegisteredEvents from "@/components/dashboard/attendee/registered-events";
-import { events } from "@/lib/data";
 
-export default function AttendeeDashboardPage() {
+import RegisteredEvents from "@/components/dashboard/attendee/registered-events";
+import { getEvents } from "@/lib/data";
+
+export default async function AttendeeDashboardPage() {
     // In a real app, this would be filtered by the logged-in user's registrations.
-    const registeredEvents = events.slice(0, 2);
+    const allEvents = await getEvents();
+    const registeredEvents = allEvents.slice(0, 2);
 
     return (
         <div className="flex flex-col gap-6">

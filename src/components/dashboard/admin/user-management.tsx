@@ -1,3 +1,4 @@
+
 import {
     MoreHorizontal,
   } from 'lucide-react'
@@ -26,10 +27,14 @@ import {
     TableHeader,
     TableRow,
   } from '@/components/ui/table'
-  import { users } from '@/lib/data'
+  import type { User } from '@/lib/data'
   import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+
+  type UserManagementProps = {
+    users: User[];
+  }
   
-  export function UserManagement() {
+  export function UserManagement({ users }: UserManagementProps) {
     return (
       <Card>
         <CardHeader>
@@ -106,4 +111,3 @@ import {
       </Card>
     )
   }
-  
