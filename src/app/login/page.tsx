@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, CalendarPlus, UserCog } from 'lucide-react';
+import { User, CalendarPlus } from 'lucide-react';
 import { Logo } from '@/components/layout/logo';
 import { Separator } from '@/components/ui/separator';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
@@ -26,7 +26,7 @@ import { auth } from '@/lib/firebase';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
-type Role = 'Attendee' | 'Organizer' | 'Admin';
+type Role = 'Attendee' | 'Organizer';
 
 const RoleForm = ({ role }: { role: Role }) => {
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
@@ -102,15 +102,12 @@ export default function LoginPage() {
                 <Separator className="flex-1" />
             </div>
           </CardContent>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="Attendee">
               <User className="mr-2 h-4 w-4" /> Attendee
             </TabsTrigger>
             <TabsTrigger value="Organizer">
               <CalendarPlus className="mr-2 h-4 w-4" /> Organizer
-            </TabsTrigger>
-            <TabsTrigger value="Admin">
-              <UserCog className="mr-2 h-4 w-4" /> Admin
             </TabsTrigger>
           </TabsList>
           <TabsContent value="Attendee">
@@ -118,9 +115,6 @@ export default function LoginPage() {
           </TabsContent>
           <TabsContent value="Organizer">
             <RoleForm role="Organizer" />
-          </TabsContent>
-          <TabsContent value="Admin">
-            <RoleForm role="Admin" />
           </TabsContent>
           <CardFooter className="justify-center border-t pt-6">
             <p className="text-sm text-muted-foreground">
