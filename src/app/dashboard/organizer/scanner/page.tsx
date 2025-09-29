@@ -2,7 +2,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { QrScanner } from '@yudiel/react-qr-scanner';
+import { Scanner } from '@yudiel/react-qr-scanner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -51,7 +51,7 @@ export default function ScannerPage() {
         </CardHeader>
         <CardContent>
             <div className="w-full max-w-md mx-auto p-4 border-2 border-dashed rounded-lg">
-                <QrScanner
+                <Scanner
                     onDecode={handleScanResult}
                     onError={(error) => console.log(error?.message)}
                     constraints={{ facingMode: 'environment' }}
