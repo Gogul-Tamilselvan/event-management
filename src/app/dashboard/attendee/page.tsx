@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import RegisteredEvents from "@/components/dashboard/attendee/registered-events";
