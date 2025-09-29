@@ -4,12 +4,12 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  projectId: "studio-6296861389-aca6c",
-  appId: "1:291759077301:web:8e63695f25c0f6b2524bfc",
-  apiKey: "AIzaSyBccnQPTBu_bf3GpLvbsl3rbtCCvPrd6FM",
-  authDomain: "studio-6296861389-aca6c.firebaseapp.com",
-  measurementId: "",
-  messagingSenderId: "291759077301",
+  apiKey: "AIzaSyCQIoyXKbxfyN7any0CZc8DGU5rHbFXads",
+  authDomain: "zenith-official.firebaseapp.com",
+  projectId: "zenith-official",
+  storageBucket: "zenith-official.appspot.com",
+  messagingSenderId: "71589870265",
+  appId: "1:71589870265:web:039590946e1e1b9c53b968"
 };
 
 // Initialize Firebase
