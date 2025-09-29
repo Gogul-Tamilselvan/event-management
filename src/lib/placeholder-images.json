@@ -1,3 +1,52 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-background",
+      "description": "Elegant conference hall set up for a corporate event",
+      "imageUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb25mZXJlbmNlJTIwZXZlbnR8ZW58MHx8fHwxNzU5MTE3ODM4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "conference event"
+    },
+    {
+      "id": "event-1",
+      "description": "Audience at a tech conference",
+      "imageUrl": "https://images.unsplash.com/photo-1600320844678-43cebba1cdfe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx0ZWNoJTIwY29uZmVyZW5jZXxlbnwwfHx8fDE3NTkwMjk0NTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tech conference"
+    },
+    {
+      "id": "event-2",
+      "description": "Marketing expo with colorful booths",
+      "imageUrl": "https://images.unsplash.com/photo-1696452941955-0708c9ede972?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYXJrZXRpbmclMjBleHBvfGVufDB8fHx8MTc1OTEyNDMwNXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "marketing expo"
+    },
+    {
+      "id": "event-3",
+      "description": "Medical professionals at a healthcare seminar",
+      "imageUrl": "https://images.unsplash.com/photo-1722235623200-59966a71af50?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8aGVhbHRoY2FyZSUyMGNvbmZlcmVuY2V8ZW58MHx8fHwxNzU5MTI0MzA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "healthcare conference"
+    },
+    {
+      "id": "event-4",
+      "description": "People networking at a formal gala",
+      "imageUrl": "https://images.unsplash.com/photo-1731743377370-d7346ca6b3da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmb3JtYWwlMjBnYWxhfGVufDB8fHx8MTc1OTA5NTY0OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "formal gala"
+    },
+    {
+      "id": "avatar-1",
+      "description": "Professional headshot of a woman",
+      "imageUrl": "https://images.unsplash.com/photo-1589729132389-8f0e0b55b91e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3b21hbiUyMGhlYWRzaG90fGVufDB8fHx8MTc1OTA0NTU2OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman headshot"
+    },
+    {
+      "id": "avatar-2",
+      "description": "Professional headshot of a man",
+      "imageUrl": "https://images.unsplash.com/photo-1590086782792-42dd2350140d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtYW4lMjBoZWFkc2hvdHxlbnwwfHx8fDE3NTkwNzc2NDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man headshot"
+    },
+    {
+      "id": "avatar-3",
+      "description": "Professional headshot of a person",
+      "imageUrl": "https://images.unsplash.com/photo-1604336732494-d8386c7029e3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBoZWFkc2hvdHxlbnwwfHx8fDE3NTkwMDQ4MjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person headshot"
+    }
+  ]
 }
