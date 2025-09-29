@@ -56,7 +56,6 @@ export default function ScannerPage() {
                     containerStyle={{ width: '100%', paddingTop: '100%', position: 'relative' }}
                     videoStyle={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                     scanDelay={500}
-                    finder={true}
                     components={{
                         audio: false,
                         finder: ({ width, height, top, left }) => (
@@ -84,3 +83,4 @@ export default function ScannerPage() {
     </Card>
   );
 }
+
