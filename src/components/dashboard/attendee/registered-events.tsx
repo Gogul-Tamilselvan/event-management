@@ -3,8 +3,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, MapPin, QrCode, Loader2 } from "lucide-react";
-import type { Event, JoinRequest } from "@/lib/data";
+import { Calendar, MapPin, QrCode } from "lucide-react";
+import type { Event } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,38 +16,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth.tsx";
-import { createGoogleWalletAction } from "@/actions/google-wallet";
-import { useToast } from "@/hooks/use-toast";
 
 type RegisteredEventsProps = {
   events: (Event & { joinRequestId: string })[];
 };
 
 export default function RegisteredEvents({ events }: RegisteredEventsProps) {
-  const { userProfile } = useAuth();
-  const { toast } = useToast();
-  const [loadingWallet, setLoadingWallet] = useState<Record<string, boolean>>({});
-
-  const handleAddToWallet = async (event: Event) => {
-    if (!userProfile) return;
-    setLoadingWallet(prev => ({...prev, [event.id]: true}));
-    
-    const result = await createGoogleWalletAction(event, userProfile.name);
-    
-    if (result.success && result.walletUrl) {
-      window.open(result.walletUrl, '_blank');
-    } else {
-      toast({
-        title: "Error",
-        description: result.error || "Could not create Google Wallet pass.",
-        variant: "destructive"
-      });
-    }
-
-    setLoadingWallet(prev => ({...prev, [event.id]: false}));
-  }
 
   const getQrCodeUrl = (joinRequestId: string) => {
       const baseUrl = "https://api.qrserver.com/v1/create-qr-code/";
@@ -110,10 +84,6 @@ export default function RegisteredEvents({ events }: RegisteredEventsProps) {
                     </div>
                 </DialogContent>
             </Dialog>
-            <Button onClick={() => handleAddToWallet(event)} disabled={loadingWallet[event.id]}>
-              {loadingWallet[event.id] ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Add to Google Wallet
-            </Button>
           </CardFooter>
         </Card>
       ))}
