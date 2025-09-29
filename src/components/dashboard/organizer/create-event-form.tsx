@@ -51,9 +51,13 @@ const formSchema = z.object({
   image: z.string().url('A valid image URL is required.'),
   isPaid: z.boolean().default(false),
   price: z.coerce.number().optional(),
+  upiId: z.string().optional(),
 }).refine(data => !data.isPaid || (data.isPaid && data.price && data.price > 0), {
     message: "Price must be greater than 0 for paid events.",
     path: ["price"],
+}).refine(data => !data.isPaid || (data.isPaid && data.upiId && data.upiId.length > 0), {
+    message: "UPI ID is required for paid events.",
+    path: ["upiId"],
 });
 
 export default function CreateEventForm() {
@@ -74,6 +78,7 @@ export default function CreateEventForm() {
       image: placeholderImages.find(p => p.id === 'event-1')?.imageUrl ?? '',
       isPaid: false,
       price: 0,
+      upiId: '',
     },
   });
 
@@ -245,8 +250,7 @@ export default function CreateEventForm() {
                 )}
               />
             </div>
-             <div className="flex items-center space-x-2">
-                <FormField
+             <FormField
                 control={form.control}
                 name="isPaid"
                 render={({ field }) => (
@@ -266,21 +270,35 @@ export default function CreateEventForm() {
                 )}
                 />
                 {isPaid && (
-                    <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                        <FormItem className='flex-1'>
-                        <FormLabel>Price (INR)</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="e.g. 500" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Price (INR)</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="e.g. 500" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="upiId"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>UPI ID</FormLabel>
+                            <FormControl>
+                                <Input placeholder="your-upi-id@okhdfcbank" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
                 )}
-            </div>
             <FormField
               control={form.control}
               name="image"

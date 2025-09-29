@@ -31,6 +31,7 @@ export type Event = {
   image: string;
   isPaid: boolean;
   price: number;
+  upiId?: string;
 };
 
 export type JoinRequest = {

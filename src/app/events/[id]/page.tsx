@@ -276,9 +276,9 @@ export default function EventPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center py-4">
-            {qrCodeImage && (
+            {qrCodeImage && event.upiId && (
               <Image 
-                src={qrCodeImage.imageUrl.replace('your-upi-id@okhdfcbank', `pay?pa=your-upi-id@okhdfcbank&pn=${encodeURIComponent(event.organizer)}&am=${event.price}&cu=INR&tn=${encodeURIComponent(`Payment for ${event.title}`)}`)}
+                src={qrCodeImage.imageUrl.replace('your-upi-id@okhdfcbank', `pay?pa=${event.upiId}&pn=${encodeURIComponent(event.organizer)}&am=${event.price}&cu=INR&tn=${encodeURIComponent(`Payment for ${event.title}`)}`)}
                 alt="QR Code for UPI Payment"
                 width={200}
                 height={200}

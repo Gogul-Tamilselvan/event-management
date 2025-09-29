@@ -16,6 +16,7 @@ const FormSchema = z.object({
     image: z.string().url("A valid image URL is required."),
     isPaid: z.coerce.boolean(),
     price: z.coerce.number().optional(),
+    upiId: z.string().optional(),
 });
 
 type ActionResult = {
@@ -36,7 +37,7 @@ export async function createEventAction(formData: FormData, organizer: string): 
     }
     
     try {
-        const { isPaid, price, ...rest } = validatedFields.data;
+        const { isPaid, price, upiId, ...rest } = validatedFields.data;
         const newEvent: Omit<Event, 'id'> = {
             title: rest.name,
             description: rest.description,
@@ -51,6 +52,7 @@ export async function createEventAction(formData: FormData, organizer: string): 
             status: 'Pending',
             isPaid: isPaid,
             price: isPaid ? price || 0 : 0,
+            upiId: isPaid ? upiId : '',
         };
 
         await addDoc(collection(db, "events"), newEvent);
