@@ -33,6 +33,8 @@ import type { Event, JoinRequest } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { requestToJoinAction } from "@/actions/request-to-join";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 
 export default function EventPage() {
@@ -45,6 +47,7 @@ export default function EventPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [transactionId, setTransactionId] = useState('');
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
 
@@ -137,6 +140,7 @@ export default function EventPage() {
     });
     
     await handleRequestToJoin();
+    setTransactionId('');
     setIsConfirmingPayment(false);
   };
 
@@ -286,10 +290,10 @@ export default function EventPage() {
           <DialogHeader>
             <DialogTitle>Complete Your Payment</DialogTitle>
             <DialogDescription>
-              Scan the QR code with your UPI app to pay ₹{event.price} to {event.organizer}. After paying, click the confirmation button below.
+              Scan the QR code with your UPI app to pay ₹{event.price} to {event.organizer}. After paying, enter the transaction ID and click confirm.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col items-center justify-center py-4">
+          <div className="flex flex-col items-center justify-center py-4 gap-4">
             {qrCodeImage && event.upiId && (
               <Image 
                 src={getQrCodeUrl()}
@@ -298,8 +302,14 @@ export default function EventPage() {
                 height={200}
               />
             )}
-            <div className="mt-4 text-center">
-              <p className="text-sm text-muted-foreground">After payment, please confirm below.</p>
+            <div className="w-full max-w-sm space-y-2">
+                <Label htmlFor="transactionId">Transaction ID</Label>
+                <Input 
+                    id="transactionId" 
+                    placeholder="Enter the transaction ID from your UPI app" 
+                    value={transactionId}
+                    onChange={(e) => setTransactionId(e.target.value)}
+                />
             </div>
           </div>
           <DialogFooter>
@@ -312,11 +322,11 @@ export default function EventPage() {
             </Button>
             <Button
                 onClick={handleConfirmPayment}
-                disabled={isConfirmingPayment}
+                disabled={isConfirmingPayment || !transactionId}
             >
                 {isConfirmingPayment ? <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...
-                </> : "I have paid"}
+                </> : "Confirm Payment"}
             </Button>
           </DialogFooter>
         </DialogContent>
