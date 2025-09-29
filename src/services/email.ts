@@ -4,44 +4,31 @@ import { createGoogleWalletAction } from "@/actions/google-wallet";
 
 /**
  * Sends a confirmation email to an attendee when their request is approved.
- * This function is set up to use SendGrid but is currently mocked.
+ * This function is set up to use SendGrid.
  * 
  * @param request - The approved join request.
  * @param event - The event the user was approved for.
  */
 export async function sendEventApprovalEmail(request: JoinRequest, event: Event): Promise<void> {
-    const { attendeeEmail, attendeeName } = request;
-    const { title } = event;
-
-    // --- Mock Email Sending Logic ---
-    // This logs the email to the console for development and testing.
-    // To send real emails, comment this out and configure the production logic below.
-    logMockEmail(attendeeEmail, title);
-    
-    // In a real implementation, we might still proceed even if wallet creation fails,
-    // but for now, we'll throw to make it clear.
-    const walletResult = await createGoogleWalletAction(event, attendeeName);
-    if (!walletResult.success || !walletResult.walletUrl) {
-         throw new Error("Could not create Google Wallet pass.");
-    }
+    // --- Production Email Sending Logic ---
+    await sendProductionEmail(request, event);
 }
 
 /**
  * Logs a mock email to the console for development purposes.
  */
-function logMockEmail(recipient: string, eventTitle: string) {
+function logMockEmail(recipient: string, eventTitle: string, walletUrl: string) {
     console.log("--- Mock Email Sent ---");
     console.log(`To: ${recipient}`);
     console.log(`From: noreply@zenithevents.app`);
     console.log(`Subject: Your Ticket for ${eventTitle}!`);
-    console.log("Body: Congratulations! Your ticket is ready. Please check your Google Wallet integration.");
+    console.log(`Body: Congratulations! Your ticket is ready. Add to wallet: ${walletUrl}`);
     console.log("-----------------------");
 }
 
 
 /**
  * Sends a real email using SendGrid.
- * NOTE: This is currently NOT USED. It is here as a reference for production implementation.
  */
 async function sendProductionEmail(request: JoinRequest, event: Event): Promise<void> {
     const { attendeeEmail, attendeeName } = request;
@@ -96,7 +83,7 @@ async function sendProductionEmail(request: JoinRequest, event: Event): Promise<
 
         if (response.status === 403) {
             console.error("SendGrid API key is invalid or the sender is not verified.");
-            throw new Error("Email configuration error: The API key may be invalid or the 'From' email address is not verified in SendGrid.");
+            throw new Error("Email configuration error (Forbidden): The API key may be invalid or the 'From' email address is not verified in SendGrid.");
         }
 
         if (!response.ok) {
