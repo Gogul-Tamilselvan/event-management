@@ -28,10 +28,8 @@ export async function sendEventApprovalEmail(request: JoinRequest, event: Event)
                 <h1>Congratulations, ${attendeeName}!</h1>
                 <p>Your ticket for <strong>${title}</strong> is ready. Please add it to your Google Wallet for easy access at the event.</p>
                 
-                <a href="${walletUrl}" target="_blank">
-                    <button style="padding: 10px 20px; background-color: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
-                        Add to Google Wallet
-                    </button>
+                <a href="${walletUrl}" target="_blank" style="display: inline-block; padding: 12px 24px; background-color: #4285f4; color: white; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">
+                    Add to Google Wallet
                 </a>
                 
                 <p>We look forward to seeing you there!</p>
@@ -40,14 +38,65 @@ export async function sendEventApprovalEmail(request: JoinRequest, event: Event)
         </html>
     `;
 
-    // In a real implementation, you would use an email API here.
+    // --- Production Email Sending Logic (Example with SendGrid) ---
+    // 1. Uncomment the following block.
+    // 2. Make sure you have an API key in your .env file (EMAIL_API_KEY).
+    // 3. You may need to add `node-fetch` or a specific SDK for your email provider.
+
+    /*
+    const apiKey = process.env.EMAIL_API_KEY;
+    if (!apiKey) {
+        console.error("Email API key is not configured. Email not sent.");
+        // Fallback to logging if no API key
+        logMockEmail(attendeeEmail, subject, emailBody);
+        return;
+    }
+
+    const emailData = {
+        personalizations: [{ to: [{ email: attendeeEmail }] }],
+        from: { email: "noreply@zenithevents.app", name: "Zenith Events" }, // Use a verified sender email
+        subject: subject,
+        content: [{ type: "text/html", value: emailBody }],
+    };
+
+    try {
+        const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(emailData),
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Failed to send email: ${response.statusText} - ${JSON.stringify(errorBody)}`);
+        }
+
+        console.log("--- Production Email Sent ---");
+        console.log(`To: ${attendeeEmail}`);
+        console.log("-------------------------");
+
+    } catch (error) {
+        console.error("Error sending production email:", error);
+    }
+    */
+
+    // --- Mock Email Sending Logic (Logs to console) ---
+    // This is the current implementation for development.
+    // You can comment this out when you enable the production logic above.
+    logMockEmail(attendeeEmail, subject, emailBody);
+
+    return Promise.resolve();
+}
+
+function logMockEmail(to: string, subject: string, body: string) {
     console.log("--- Sending Mock Email ---");
-    console.log(`To: ${attendeeEmail}`);
+    console.log(`To: ${to}`);
     console.log(`Subject: ${subject}`);
     console.log("Body:");
-    console.log(emailBody);
+    console.log(body);
     console.log("-------------------------");
-
-    // This return signifies that the "email has been sent".
-    return Promise.resolve();
+    console.log("NOTE: To send real emails, configure a provider in src/services/email.ts");
 }
