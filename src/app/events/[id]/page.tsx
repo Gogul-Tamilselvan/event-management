@@ -290,7 +290,7 @@ export default function EventPage() {
           <DialogHeader>
             <DialogTitle>Complete Your Payment</DialogTitle>
             <DialogDescription>
-              Scan the QR code with your UPI app to pay ₹{event.price} to {event.organizer}. After paying, enter the transaction ID and click confirm.
+              Scan the QR code with your UPI app to pay ₹{event.price} to {event.organizer}. After paying, enter the 12-digit transaction ID and click confirm.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center py-4 gap-4">
@@ -306,10 +306,12 @@ export default function EventPage() {
                 <Label htmlFor="transactionId">Transaction ID</Label>
                 <Input 
                     id="transactionId" 
-                    placeholder="Enter the transaction ID from your UPI app" 
+                    placeholder="Enter 12-digit transaction ID" 
                     value={transactionId}
                     onChange={(e) => setTransactionId(e.target.value)}
+                    maxLength={12}
                 />
+                 <p className="text-xs text-muted-foreground">Must be 12 digits.</p>
             </div>
           </div>
           <DialogFooter>
@@ -322,7 +324,7 @@ export default function EventPage() {
             </Button>
             <Button
                 onClick={handleConfirmPayment}
-                disabled={isConfirmingPayment || !transactionId}
+                disabled={isConfirmingPayment || !/^\d{12}$/.test(transactionId)}
             >
                 {isConfirmingPayment ? <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...
