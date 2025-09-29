@@ -47,10 +47,10 @@ async function sendProductionEmail(request: JoinRequest, event: Event): Promise<
 
     const serviceId = process.env.EMAILJS_SERVICE_ID;
     const templateId = process.env.EMAILJS_TEMPLATE_ID;
-    const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+    const privateKey = process.env.EMAILJS_PRIVATE_KEY;
 
-    if (!serviceId || !templateId || !publicKey) {
-        const errorMessage = "EmailJS credentials are not configured in .env. Email not sent.";
+    if (!serviceId || !templateId || !privateKey || privateKey === 'your_private_key_here') {
+        const errorMessage = "EmailJS credentials (Service ID, Template ID, or Private Key) are not configured in .env. Email not sent.";
         console.error(errorMessage);
         throw new Error(errorMessage);
     }
@@ -60,7 +60,6 @@ async function sendProductionEmail(request: JoinRequest, event: Event): Promise<
          throw new Error("Could not create Google Wallet pass for the email.");
     }
 
-    // These parameters must match the variables in your EmailJS template
     const templateParams = {
         to_name: attendeeName,
         to_email: attendeeEmail,
@@ -71,7 +70,6 @@ async function sendProductionEmail(request: JoinRequest, event: Event): Promise<
     const emailData = {
         service_id: serviceId,
         template_id: templateId,
-        user_id: publicKey,
         template_params: templateParams,
     };
 
@@ -81,6 +79,7 @@ async function sendProductionEmail(request: JoinRequest, event: Event): Promise<
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${privateKey}`
             },
             body: JSON.stringify(emailData),
         });
