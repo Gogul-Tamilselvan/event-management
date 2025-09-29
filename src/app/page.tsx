@@ -156,56 +156,67 @@ export default async function Home() {
               Discover and join events managed with Zenith.
             </p>
           </div>
-          <Carousel
-            opts={{
-              align: 'start',
-              loop: true,
-            }}
-            className="w-full"
-          >
-            <CarouselContent>
-              {upcomingEvents.map((event) => (
-                <CarouselItem
-                  key={event.id}
-                  className="md:basis-1/2 lg:basis-1/3"
-                >
-                  <div className="p-1">
-                    <Card className="overflow-hidden h-full flex flex-col">
-                      <div className="relative h-48 w-full">
-                        <Image
-                            src={event.image}
-                            alt={event.title}
-                            fill
-                            className="object-cover"
-                          />
-                         <div className="absolute top-2 right-2">
-                           <Badge variant="secondary">{event.category}</Badge>
-                         </div>
-                      </div>
-                      <CardHeader>
-                        <CardTitle className="font-headline text-xl">
-                          {event.title}
-                        </CardTitle>
-                        <CardDescription>{new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-                        <p className="text-muted-foreground">
-                          {event.location}
-                        </p>
-                      </CardContent>
-                      <div className="p-6 pt-0">
-                        <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                          <Link href={`/events/${event.id}`}>View Details</Link>
-                        </Button>
-                      </div>
-                    </Card>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="ml-12" />
-            <CarouselNext className="mr-12" />
-          </Carousel>
+          {upcomingEvents.length > 0 ? (
+            <Carousel
+              opts={{
+                align: 'start',
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent>
+                {upcomingEvents.map((event) => (
+                  <CarouselItem
+                    key={event.id}
+                    className="md:basis-1/2 lg:basis-1/3"
+                  >
+                    <div className="p-1">
+                      <Card className="overflow-hidden h-full flex flex-col">
+                        <div className="relative h-48 w-full">
+                          <Image
+                              src={event.image}
+                              alt={event.title}
+                              fill
+                              className="object-cover"
+                            />
+                          <div className="absolute top-2 right-2">
+                            <Badge variant="secondary">{event.category}</Badge>
+                          </div>
+                        </div>
+                        <CardHeader>
+                          <CardTitle className="font-headline text-xl">
+                            {event.title}
+                          </CardTitle>
+                          <CardDescription>{new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex-grow">
+                          <p className="text-muted-foreground">
+                            {event.location}
+                          </p>
+                        </CardContent>
+                        <div className="p-6 pt-0">
+                          <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                            <Link href={`/events/${event.id}`}>View Details</Link>
+                          </Button>
+                        </div>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="ml-12" />
+              <CarouselNext className="mr-12" />
+            </Carousel>
+          ) : (
+            <div className="text-center text-muted-foreground">
+              <p>No upcoming events at the moment. Check back soon!</p>
+            </div>
+          )}
+           <div className="mt-12 text-center">
+            <Button asChild size="lg">
+              <Link href="/events">View All Events</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -246,3 +257,4 @@ export default async function Home() {
     </div>
   );
 }
+

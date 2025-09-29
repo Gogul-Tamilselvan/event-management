@@ -108,6 +108,17 @@ export default function Header() {
                   Home
                 </NavigationMenuLink>
               </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  href="/events"
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    'bg-transparent'
+                  )}
+                >
+                  Events
+                </NavigationMenuLink>
+              </NavigationMenuItem>
                {user && (
                  <NavigationMenuItem>
                     <NavigationMenuLink
@@ -163,6 +174,7 @@ export default function Header() {
               </SheetHeader>
               <div className="mt-4 flex flex-col space-y-4">
                 <Link href="/">Home</Link>
+                <Link href="/events">Events</Link>
                 {user ? (
                     <>
                         <Link href="/dashboard">Dashboard</Link>
