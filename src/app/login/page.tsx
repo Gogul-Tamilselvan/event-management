@@ -20,6 +20,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, CalendarPlus, UserCog } from 'lucide-react';
 import { Logo } from '@/components/layout/logo';
+import { Separator } from '@/components/ui/separator';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 type Role = 'Attendee' | 'Organizer' | 'Admin';
 
@@ -52,6 +57,28 @@ const RoleForm = ({ role }: { role: Role }) => {
 };
 
 export default function LoginPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      // Redirect to a protected route or dashboard on successful login
+      window.location.href = '/dashboard';
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
+       toast({
+        title: "Sign-in Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
       <Tabs defaultValue="Attendee" className="w-full max-w-md">
@@ -65,6 +92,16 @@ export default function LoginPage() {
               Select your role to sign in to your account.
             </CardDescription>
           </CardHeader>
+          <CardContent>
+             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
+                {isLoading ? 'Signing in...' : 'Sign In with Google'}
+            </Button>
+            <div className="my-4 flex items-center">
+                <Separator className="flex-1" />
+                <span className="mx-4 text-xs text-muted-foreground">OR CONTINUE WITH</span>
+                <Separator className="flex-1" />
+            </div>
+          </CardContent>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="Attendee">
               <User className="mr-2 h-4 w-4" /> Attendee
