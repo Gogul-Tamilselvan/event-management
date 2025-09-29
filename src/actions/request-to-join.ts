@@ -1,7 +1,7 @@
 
 'use server';
 
-import { addDoc, collection, doc, getDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import type { Event, User } from "@/lib/data";
