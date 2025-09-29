@@ -4,7 +4,7 @@
 
 import Image from "next/image";
 import { Calendar, MapPin, Mail, Clock, Loader2, UserPlus, CreditCard } from "lucide-react";
-import { getEvents, getJoinRequests } from "@/lib/data";
+import { getEvents, getJoinRequests, placeholderImages } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +19,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import type { Event, JoinRequest } from "@/lib/data";
@@ -35,8 +42,11 @@ export default function EventPage() {
   const [loading, setLoading] = useState(true);
   const [joinRequestStatus, setJoinRequestStatus] = useState<JoinRequest['status'] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
+
+  const qrCodeImage = placeholderImages.find(p => p.id === 'qr-code');
 
   useEffect(() => {
     async function fetchEventAndRequestStatus() {
@@ -109,25 +119,18 @@ export default function EventPage() {
         router.push('/login');
         return;
     }
-    const upiId = 'your-upi-id@okhdfcbank'; // Replace with a placeholder or your actual UPI ID
-    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(event.organizer)}&am=${event.price}&cu=INR&tn=${encodeURIComponent(`Payment for ${event.title}`)}`;
     
-    // In a real app, you'd open this URL. For this demo, we'll simulate the payment and then send the request.
-    window.open(upiUrl, '_blank');
-
-    toast({
-        title: "Waiting for payment confirmation...",
-        description: "Once your payment is complete, your request to join will be sent automatically.",
-    });
-
-    // Simulate waiting for payment webhook, then proceed
+    setShowPaymentDialog(true);
+    
+    // Simulate waiting for payment webhook after showing QR code
     setTimeout(async () => {
-       await handleRequestToJoin();
+       setShowPaymentDialog(false);
        toast({
         title: "Payment Received!",
-        description: `Your request for ${event.title} is now pending organizer approval.`,
-        });
-    }, 3000);
+        description: `Your request for ${event.title} is now being sent for approval.`,
+       });
+       await handleRequestToJoin();
+    }, 8000); // Wait 8 seconds to simulate payment
   };
 
   const handleEmailReminder = () => {
@@ -263,6 +266,32 @@ export default function EventPage() {
           </div>
         </div>
       </section>
+      
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Complete Your Payment</DialogTitle>
+            <DialogDescription>
+              Scan the QR code with your UPI app to pay ₹{event.price} to {event.organizer}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-4">
+            {qrCodeImage && (
+              <Image 
+                src={qrCodeImage.imageUrl.replace('your-upi-id@okhdfcbank', `pay?pa=your-upi-id@okhdfcbank&pn=${encodeURIComponent(event.organizer)}&am=${event.price}&cu=INR&tn=${encodeURIComponent(`Payment for ${event.title}`)}`)}
+                alt="QR Code for UPI Payment"
+                width={200}
+                height={200}
+              />
+            )}
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">Waiting for payment confirmation...</p>
+              <Loader2 className="h-6 w-6 animate-spin mt-2" />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
