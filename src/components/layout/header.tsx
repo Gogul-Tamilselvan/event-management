@@ -4,15 +4,10 @@
 import * as React from 'react';
 import Link from 'next/link';
 import {
-  Briefcase,
-  Calendar,
   ChevronDown,
-  LayoutDashboard,
-  LifeBuoy,
-  LogIn,
+  LogOut,
   Menu,
   UserPlus,
-  Users,
 } from 'lucide-react';
 
 import {
@@ -33,12 +28,18 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Logo } from './logo';
-
-const mainNav = [
-  { title: 'Home', href: '/' },
-  { title: 'About', href: '/about' },
-  { title: 'Pricing', href: '/pricing' },
-];
+import { useAuth } from '@/hooks/use-auth';
+import { auth } from '@/lib/firebase';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Skeleton } from '../ui/skeleton';
 
 const components: { title: string; href: string; description: string }[] = [
   {
@@ -60,6 +61,12 @@ const components: { title: string; href: string; description: string }[] = [
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = React.useState(false);
+  const { user, userProfile, loading } = useAuth();
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    window.location.href = '/';
+  };
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -101,26 +108,19 @@ export default function Header() {
                   Home
                 </NavigationMenuLink>
               </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuTrigger
-                  className='bg-transparent'
-                >
-                  Dashboards
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                    {components.map((component) => (
-                      <ListItem
-                        key={component.title}
-                        title={component.title}
-                        href={component.href}
-                      >
-                        {component.description}
-                      </ListItem>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
+               {user && (
+                 <NavigationMenuItem>
+                    <NavigationMenuLink
+                        href="/dashboard"
+                        className={cn(
+                            navigationMenuTriggerStyle(),
+                            'bg-transparent'
+                        )}
+                        >
+                        Dashboard
+                    </NavigationMenuLink>
+                </NavigationMenuItem>
+               )}
               <NavigationMenuItem>
                 <NavigationMenuLink
                   href="/support"
@@ -163,33 +163,74 @@ export default function Header() {
               </SheetHeader>
               <div className="mt-4 flex flex-col space-y-4">
                 <Link href="/">Home</Link>
-                <Link href="/dashboard/admin">Admin Dashboard</Link>
-                <Link href="/dashboard/organizer">Organizer Dashboard</Link>
-                <Link href="/dashboard/attendee">Attendee Dashboard</Link>
-                <Link href="/support">Support</Link>
-                 <hr />
-                <Button asChild>
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button asChild variant="secondary">
-                  <Link href="/signup">Sign Up</Link>
-                </Button>
+                {user ? (
+                    <>
+                        <Link href="/dashboard">Dashboard</Link>
+                        <Link href="/account">Account</Link>
+                        <Button onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" />Logout</Button>
+                    </>
+                ) : (
+                    <>
+                        <Link href="/support">Support</Link>
+                        <hr />
+                        <Button asChild>
+                        <Link href="/login">Login</Link>
+                        </Button>
+                        <Button asChild variant="secondary">
+                        <Link href="/signup">Sign Up</Link>
+                        </Button>
+                    </>
+                )}
               </div>
             </SheetContent>
           </Sheet>
         </div>
 
         <div className="hidden flex-1 items-center justify-end space-x-2 md:flex">
-          <Button asChild variant="ghost" className="text-foreground">
-            <Link href="/login">
-              <LogIn className="mr-2 h-4 w-4" /> Login
-            </Link>
-          </Button>
-          <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
-            <Link href="/signup">
-              <UserPlus className="mr-2 h-4 w-4" /> Sign Up
-            </Link>
-          </Button>
+         {loading ? (
+             <>
+                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-24" />
+             </>
+         ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2">
+                   <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.photoURL ?? ''} alt={userProfile?.name ?? ''} />
+                        <AvatarFallback>{userProfile?.name?.charAt(0) ?? 'U'}</AvatarFallback>
+                    </Avatar>
+                  <span>{userProfile?.name ?? user.email}</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild><Link href="/dashboard">Dashboard</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/account">Settings</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/support">Support</Link></DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Button asChild variant="ghost" className="text-foreground">
+                <Link href="/login">
+                  Login
+                </Link>
+              </Button>
+              <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
+                <Link href="/signup">
+                  <UserPlus className="mr-2 h-4 w-4" /> Sign Up
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>

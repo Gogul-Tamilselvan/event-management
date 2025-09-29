@@ -1,3 +1,6 @@
+
+'use client';
+
 import Link from 'next/link';
 import {
   Home,
@@ -9,8 +12,8 @@ import {
   Bell,
   User,
   PanelLeft,
-  Search,
   Menu,
+  LogOut,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -30,9 +33,13 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/layout/logo';
 import AuthGuard from '@/components/auth/auth-guard';
+import { useAuth } from '@/hooks/use-auth';
+import { auth } from '@/lib/firebase';
+import { usePathname } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type DashboardLayoutProps = {
   children: React.ReactNode;
@@ -44,29 +51,60 @@ const NAV_ITEMS = {
     { href: '#', icon: <CheckSquare className="h-5 w-5" />, label: 'Event Approvals' },
     { href: '#', icon: <Users className="h-5 w-5" />, label: 'User Management' },
     { href: '#', icon: <BarChart className="h-5 w-5" />, label: 'Analytics' },
-    { href: '#', icon: <Settings className="h-5 w-5" />, label: 'Settings' },
+    { href: '/account', icon: <Settings className="h-5 w-5" />, label: 'Settings' },
   ],
   organizer: [
     { href: '/dashboard/organizer', icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
     { href: '#', icon: <CalendarPlus className="h-5 w-5" />, label: 'Create Event' },
     { href: '#', icon: <Users className="h-5 w-5" />, label: 'My Events' },
-    { href: '#', icon: <Settings className="h-5 w-5" />, label: 'Settings' },
+    { href: '/account', icon: <Settings className="h-5 w-5" />, label: 'Settings' },
   ],
   attendee: [
-    { href: '/dashboard/attendee', icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
-    { href: '#', icon: <CalendarPlus className="h-5 w-5" />, label: 'My Registered Events' },
-    { href: '#', icon: <Settings className="h-5 w-5" />, label: 'Profile' },
+    { href: '/dashboard/attendee', icon: <Home className="h-5 w-5" />, label: 'My Events' },
+    { href: '/account', icon: <Settings className="h-5 w-5" />, label: 'Profile' },
   ],
 };
 
 function getNavItems(role: 'admin' | 'organizer' | 'attendee') {
-  return NAV_ITEMS[role];
+  return NAV_ITEMS[role] || NAV_ITEMS.attendee;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  // In a real app, role would come from user session
-  const userRole = 'admin'; 
+  const { user, userProfile, loading } = useAuth();
+  const pathname = usePathname();
+  const userRole = userProfile?.role.toLowerCase() as keyof typeof NAV_ITEMS ?? 'attendee';
   const navItems = getNavItems(userRole);
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    window.location.href = '/';
+  };
+  
+  const BreadcrumbTrail = () => {
+    const pathParts = pathname.split('/').filter(part => part);
+    const trail = pathParts.map((part, index) => {
+        const href = `/${pathParts.slice(0, index + 1).join('/')}`;
+        const isLast = index === pathParts.length - 1;
+        const text = part.charAt(0).toUpperCase() + part.slice(1);
+
+        return (
+            <React.Fragment key={href}>
+                <BreadcrumbItem>
+                    {isLast ? (
+                        <BreadcrumbPage>{text}</BreadcrumbPage>
+                    ) : (
+                        <BreadcrumbLink asChild>
+                            <Link href={href}>{text}</Link>
+                        </BreadcrumbLink>
+                    )}
+                </BreadcrumbItem>
+                {!isLast && <BreadcrumbSeparator />}
+            </React.Fragment>
+        );
+    });
+
+    return <Breadcrumb className="hidden md:flex"><BreadcrumbList>{trail}</BreadcrumbList></Breadcrumb>;
+  }
 
   return (
     <AuthGuard>
@@ -85,16 +123,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             <div className="flex-1">
               <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-                  >
-                    {item.icon}
-                    {item.label}
-                  </Link>
-                ))}
+                {loading ? (
+                    <>
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                    </>
+                ) : (
+                    navItems.map((item) => (
+                    <Link
+                        key={item.label}
+                        href={item.href}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === item.href ? 'bg-muted text-primary' : 'text-muted-foreground'}`}
+                    >
+                        {item.icon}
+                        {item.label}
+                    </Link>
+                    ))
+                )}
               </nav>
             </div>
           </div>
@@ -125,7 +171,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <Link
                       key={item.label}
                       href={item.href}
-                      className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                      className={`mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 hover:text-foreground ${pathname === item.href ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
                     >
                       {item.icon}
                       {item.label}
@@ -135,40 +181,33 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </SheetContent>
             </Sheet>
             <div className="w-full flex-1">
-              {/* Breadcrumb can be dynamically generated based on path */}
-              <Breadcrumb className="hidden md:flex">
-                  <BreadcrumbList>
-                      <BreadcrumbItem>
-                      <BreadcrumbLink asChild>
-                          <Link href="/dashboard/admin">Dashboard</Link>
-                      </BreadcrumbLink>
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                      <BreadcrumbPage>Admin</BreadcrumbPage>
-                      </BreadcrumbItem>
-                  </BreadcrumbList>
-              </Breadcrumb>
+              <BreadcrumbTrail />
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="icon" className="rounded-full">
-                  <User className="h-5 w-5" />
-                  <span className="sr-only">Toggle user menu</span>
+                 <Button variant="secondary" size="icon" className="rounded-full">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.photoURL ?? ''} alt={userProfile?.name ?? ''} />
+                        <AvatarFallback>{userProfile?.name?.charAt(0) ?? 'U'}</AvatarFallback>
+                    </Avatar>
+                    <span className="sr-only">Toggle user menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/account">Settings</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/support">Support</Link></DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
           <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-            {children}
+            {loading ? <div className="flex items-center justify-center h-full w-full"><Loader2 className="h-8 w-8 animate-spin" /></div> : children}
           </main>
         </div>
       </div>
