@@ -31,7 +31,7 @@ const createMockWalletObject = (eventId: string, eventTitle: string, attendeeNam
             "hexBackgroundColor": "#4285f4",
             "logo": {
               "sourceUri": {
-                "uri": "https://firebasestorage.googleapis.com/v0/b/zenith-official.appspot.com/o/logo.png?alt=media"
+                "uri": "https://picsum.photos/seed/logo/100/100"
               }
             },
             "cardTitle": {
@@ -54,7 +54,7 @@ const createMockWalletObject = (eventId: string, eventTitle: string, attendeeNam
             },
             "heroImage": {
               "sourceUri": {
-                "uri": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800"
+                "uri": "https://picsum.photos/seed/hero/800/400"
               }
             },
             "textModulesData": [
