@@ -169,6 +169,13 @@ export default function EventPage() {
       );
   }
 
+  const getQrCodeUrl = () => {
+    if (!qrCodeImage || !event.upiId) return '';
+    const baseUrl = qrCodeImage.imageUrl.split('?')[0];
+    const upiData = `upi://pay?pa=${event.upiId}&pn=${encodeURIComponent(event.organizer)}&am=${event.price}&cu=INR&tn=${encodeURIComponent(`Payment for ${event.title}`)}`;
+    return `${baseUrl}?data=${encodeURIComponent(upiData)}`;
+  }
+
   return (
     <div>
       <section className="relative h-[40vh] md:h-[50vh] w-full">
@@ -278,7 +285,7 @@ export default function EventPage() {
           <div className="flex flex-col items-center justify-center py-4">
             {qrCodeImage && event.upiId && (
               <Image 
-                src={qrCodeImage.imageUrl.replace('your-upi-id@okhdfcbank', `pay?pa=${event.upiId}&pn=${encodeURIComponent(event.organizer)}&am=${event.price}&cu=INR&tn=${encodeURIComponent(`Payment for ${event.title}`)}`)}
+                src={getQrCodeUrl()}
                 alt="QR Code for UPI Payment"
                 width={200}
                 height={200}
