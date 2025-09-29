@@ -1,6 +1,9 @@
+
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, Mail, MapPin } from "lucide-react";
+import { Calendar, Mail, MapPin, Loader2 } from "lucide-react";
 import type { Event } from "@/lib/data";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,23 +14,44 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth.tsx";
+import { createGoogleWalletAction } from "@/actions/google-wallet";
+import { useToast } from "@/hooks/use-toast";
 
 type RegisteredEventsProps = {
   events: Event[];
 };
 
 export default function RegisteredEvents({ events }: RegisteredEventsProps) {
-  const generateCalendarLink = (event: Event, type: 'google' | 'outlook' | 'ical') => {
+  const { userProfile } = useAuth();
+  const { toast } = useToast();
+  const [loadingWallet, setLoadingWallet] = useState<Record<string, boolean>>({});
+
+  const generateCalendarLink = (event: Event) => {
     const startTime = new Date(`${event.date}T${event.time.split(' - ')[0]}`).toISOString().replace(/-|:|\.\d\d\d/g, '');
     const endTime = new Date(`${event.date}T${event.time.split(' - ')[1]}`).toISOString().replace(/-|:|\.\d\d\d/g, '');
-
-    if (type === 'google') {
-      return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${startTime}/${endTime}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}`;
-    }
-    // Note: Outlook/iCal links are more complex and may require generating .ics files server-side for full functionality.
-    // These are simplified examples.
-    return '#';
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${startTime}/${endTime}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}`;
   };
+  
+  const handleAddToWallet = async (event: Event) => {
+    if (!userProfile) return;
+    setLoadingWallet(prev => ({...prev, [event.id]: true}));
+    
+    const result = await createGoogleWalletAction(event, userProfile.name);
+    
+    if (result.success && result.walletUrl) {
+      window.open(result.walletUrl, '_blank');
+    } else {
+      toast({
+        title: "Error",
+        description: result.error || "Could not create Google Wallet pass.",
+        variant: "destructive"
+      });
+    }
+
+    setLoadingWallet(prev => ({...prev, [event.id]: false}));
+  }
 
   return (
     <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
@@ -61,23 +85,24 @@ export default function RegisteredEvents({ events }: RegisteredEventsProps) {
             <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
           </CardContent>
           <CardFooter className="flex flex-wrap gap-2">
+            <Button onClick={() => handleAddToWallet(event)} disabled={loadingWallet[event.id]}>
+              {loadingWallet[event.id] ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Add to Google Wallet
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button>
+                <Button variant="outline">
                   <Calendar className="mr-2 h-4 w-4" /> Add to Calendar
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem asChild>
-                  <a href={generateCalendarLink(event, 'google')} target="_blank" rel="noopener noreferrer">Google Calendar</a>
+                  <a href={generateCalendarLink(event)} target="_blank" rel="noopener noreferrer">Google Calendar</a>
                 </DropdownMenuItem>
                 <DropdownMenuItem>Outlook</DropdownMenuItem>
                 <DropdownMenuItem>iCal</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline">
-              <Mail className="mr-2 h-4 w-4" /> Email Reminder
-            </Button>
           </CardFooter>
         </Card>
       ))}
