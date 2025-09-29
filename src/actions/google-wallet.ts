@@ -15,13 +15,16 @@ const ISSUER_ID = "3388000000022226666";
 const PASS_CLASS_ID = "EVENT_TICKET_CLASS_DEMO";
 
 // A simplified mock of what a Google Wallet object might look like.
-const createMockWalletObject = (eventId: string, eventTitle: string, attendeeName: string) => {
+const createMockWalletObject = (event: Event, attendeeName: string) => {
     const objectId = `${ISSUER_ID}.${uuidv4()}`;
+    // In a real app, the origin should be your app's domain
+    const origin = process.env.NODE_ENV === 'production' ? 'https://your-app-domain.com' : 'http://localhost:9002';
+    
     return {
-      "iss": "your-service-account-email@developer.gserviceaccount.com",
+      "iss": "zenith-events-demo@zenith-official.iam.gserviceaccount.com",
       "aud": "google",
       "typ": "savetowallet",
-      "origins": [],
+      "origins": [origin],
       "payload": {
         "genericObjects": [
           {
@@ -32,12 +35,18 @@ const createMockWalletObject = (eventId: string, eventTitle: string, attendeeNam
             "logo": {
               "sourceUri": {
                 "uri": "https://picsum.photos/seed/logo/100/100"
+              },
+              "contentDescription": {
+                 "defaultValue": {
+                    "language": "en",
+                    "value": "Zenith Events Logo"
+                 }
               }
             },
             "cardTitle": {
               "defaultValue": {
                 "language": "en",
-                "value": eventTitle
+                "value": event.title
               }
             },
             "header": {
@@ -54,7 +63,13 @@ const createMockWalletObject = (eventId: string, eventTitle: string, attendeeNam
             },
             "heroImage": {
               "sourceUri": {
-                "uri": "https://picsum.photos/seed/hero/800/400"
+                "uri": event.image
+              },
+              "contentDescription": {
+                 "defaultValue": {
+                    "language": "en",
+                    "value": `Image for ${event.title}`
+                 }
               }
             },
             "textModulesData": [
@@ -65,13 +80,18 @@ const createMockWalletObject = (eventId: string, eventTitle: string, attendeeNam
               },
               {
                 "header": "EVENT",
-                "body": eventTitle,
+                "body": event.title,
                 "id": "event_name"
               },
+              {
+                "header": "DATE",
+                "body": new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric'}),
+                "id": "date"
+              },
                {
-                "header": "EVENT_ID",
-                "body": eventId,
-                "id": "event_id"
+                "header": "LOCATION",
+                "body": event.location,
+                "id": "location"
               }
             ]
           }
@@ -96,7 +116,7 @@ export async function createGoogleWalletAction(event: Event, attendeeName: strin
         // 4. You would then construct the "save to wallet" URL with that JWT.
 
         // For this demo, we'll create a mock object and a URL.
-        const mockObject = createMockWalletObject(event.id, event.title, attendeeName);
+        const mockObject = createMockWalletObject(event, attendeeName);
         
         // This is a simplified, unsigned version for demonstration.
         // A real JWT would be much longer and signed.

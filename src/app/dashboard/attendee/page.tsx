@@ -3,14 +3,16 @@
 'use client';
 
 import RegisteredEvents from "@/components/dashboard/attendee/registered-events";
-import { getEvents, getJoinRequests } from "@/lib/data";
 import type { Event, JoinRequest } from "@/lib/data";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth.tsx";
+import { getAttendeeDashboardDataAction } from "@/actions/get-attendee-dashboard-data";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AttendeeDashboardPage() {
     const { user } = useAuth();
+    const { toast } = useToast();
     const [registeredEvents, setRegisteredEvents] = useState<Event[]>([]);
     const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
@@ -22,24 +24,23 @@ export default function AttendeeDashboardPage() {
                 return;
             };
 
-            const allEvents = await getEvents();
-            const allRequests = await getJoinRequests();
+            const result = await getAttendeeDashboardDataAction(user.uid);
 
-            const userRequests = allRequests.filter(req => req.attendeeId === user.uid);
-            
-            const approvedRequestEventIds = userRequests
-                .filter(req => req.status === 'approved')
-                .map(req => req.eventId);
+            if (result.success && result.data) {
+                setRegisteredEvents(result.data.registeredEvents);
+                setPendingRequests(result.data.pendingRequests);
+            } else {
+                toast({
+                    title: "Error",
+                    description: "Could not load your dashboard data.",
+                    variant: "destructive",
+                });
+            }
 
-            const userRegisteredEvents = allEvents.filter(event => approvedRequestEventIds.includes(event.id));
-            const userPendingRequests = userRequests.filter(req => req.status === 'pending');
-
-            setRegisteredEvents(userRegisteredEvents);
-            setPendingRequests(userPendingRequests);
             setLoading(false);
         }
         fetchEventsAndRequests();
-    }, [user]);
+    }, [user, toast]);
 
 
     if (loading) {
