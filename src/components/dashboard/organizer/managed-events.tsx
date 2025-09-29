@@ -142,7 +142,7 @@ export default function ManagedEvents({ events: initialEvents }: ManagedEventsPr
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem asChild>
-                          <Link href="#">Edit</Link>
+                           <Link href={`/dashboard/organizer/edit/${event.id}`}>Edit</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                            <Link href="/dashboard/organizer/attendees">View Attendees</Link>
