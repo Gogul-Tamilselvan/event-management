@@ -4,29 +4,19 @@ import { createGoogleWalletAction } from "@/actions/google-wallet";
 
 /**
  * Sends a confirmation email to an attendee when their request is approved.
- * This function is set up to use SendGrid.
+ * This function is set up to use EmailJS.
  * 
  * @param request - The approved join request.
  * @param event - The event the user was approved for.
  */
 export async function sendEventApprovalEmail(request: JoinRequest, event: Event): Promise<void> {
-    const { attendeeEmail, attendeeName } = request;
-    const { title } = event;
-    
     // --- Mock Email Sending Logic for Development ---
     // This logs the email to the console instead of sending a real one.
-    // Useful for when SendGrid isn't configured.
-    const walletResult = await createGoogleWalletAction(event, attendeeName);
-    if (walletResult.success && walletResult.walletUrl) {
-      logMockEmail(attendeeEmail, title, walletResult.walletUrl);
-    } else {
-      console.error("Could not create Google Wallet pass for mock email.");
-    }
+    // Useful for when an email service isn't configured.
+    // logMockEmail(request.attendeeEmail, event.title, "http://mock-wallet-link.com");
+
 
     // --- Production Email Sending Logic ---
-    // This part is commented out to prevent errors until SendGrid is fully configured.
-    // Once your SendGrid account is set up with a verified sender, you can uncomment this.
-    /*
     try {
         await sendProductionEmail(request, event);
     } catch (error) {
@@ -34,7 +24,6 @@ export async function sendEventApprovalEmail(request: JoinRequest, event: Event)
         // Re-throw the error to ensure the calling action knows about the failure.
         throw error;
     }
-    */
 }
 
 /**
@@ -43,7 +32,7 @@ export async function sendEventApprovalEmail(request: JoinRequest, event: Event)
 function logMockEmail(recipient: string, eventTitle: string, walletUrl: string) {
     console.log("--- Mock Email Sent ---");
     console.log(`To: ${recipient}`);
-    console.log(`From: noreply@zenithevents.app`);
+    console.log(`From: (EmailJS)`);
     console.log(`Subject: Your Ticket for ${eventTitle}!`);
     console.log(`Body: Congratulations! Your ticket is ready. Add to wallet: ${walletUrl}`);
     console.log("-----------------------");
@@ -51,74 +40,63 @@ function logMockEmail(recipient: string, eventTitle: string, walletUrl: string) 
 
 
 /**
- * Sends a real email using SendGrid.
+ * Sends a real email using EmailJS REST API.
  */
 async function sendProductionEmail(request: JoinRequest, event: Event): Promise<void> {
     const { attendeeEmail, attendeeName } = request;
     const { title } = event;
 
-    const apiKey = process.env.SENDGRID_API_KEY;
-    if (!apiKey) {
-        const errorMessage = "SendGrid API key is not configured. Email not sent.";
+    const serviceId = process.env.EMAILJS_SERVICE_ID;
+    const templateId = process.env.EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey) {
+        const errorMessage = "EmailJS credentials are not configured in .env. Email not sent.";
         console.error(errorMessage);
         throw new Error(errorMessage);
     }
     
     const walletResult = await createGoogleWalletAction(event, attendeeName);
     if (!walletResult.success || !walletResult.walletUrl) {
-         throw new Error("Could not create Google Wallet pass.");
+         throw new Error("Could not create Google Wallet pass for the email.");
     }
 
-    const emailBody = `
-        <html>
-            <body>
-                <h1>Congratulations, ${attendeeName}!</h1>
-                <p>Your ticket for <strong>${title}</strong> is ready. Please add it to your Google Wallet for easy access at the event.</p>
-                
-                <a href="${walletResult.walletUrl}" target="_blank" style="display: inline-block; padding: 12px 24px; background-color: #4285f4; color: white; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">
-                    Add to Google Wallet
-                </a>
-                
-                <p>We look forward to seeing you there!</p>
-                <p>Thanks,<br/>The Zenith Events Team</p>
-            </body>
-        </html>
-    `;
+    // These parameters must match the variables in your EmailJS template
+    const templateParams = {
+        to_name: attendeeName,
+        to_email: attendeeEmail,
+        event_title: title,
+        wallet_url: walletResult.walletUrl,
+    };
 
     const emailData = {
-        personalizations: [{ to: [{ email: attendeeEmail }] }],
-        from: { email: "noreply@zenithevents.app", name: "Zenith Events" },
-        subject: `Your Ticket for ${title}!`,
-        content: [{ type: "text/html", value: emailBody }],
+        service_id: serviceId,
+        template_id: templateId,
+        user_id: publicKey,
+        template_params: templateParams,
     };
 
     try {
-        console.log("Attempting to send email via SendGrid...");
+        console.log("Attempting to send email via EmailJS...");
         const fetch = (await import('node-fetch')).default;
-        const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(emailData),
         });
 
-        if (response.status === 403) {
-            console.error("SendGrid API key is invalid or the sender is not verified.");
-            throw new Error("Email configuration error (Forbidden): The API key may be invalid or the 'From' email address is not verified in SendGrid.");
-        }
-
         if (!response.ok) {
-            const errorBody = await response.json();
-            console.error("SendGrid error response:", JSON.stringify(errorBody, null, 2));
-            throw new Error(`Failed to send email: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error("EmailJS error response:", errorText);
+            throw new Error(`Failed to send email: ${response.statusText} - ${errorText}`);
         }
 
-        console.log(`--- Production Email Sent to ${attendeeEmail} ---`);
+        console.log(`--- Production Email Sent to ${attendeeEmail} via EmailJS ---`);
 
     } catch (error) {
-        console.error("Error sending production email:", error);
+        console.error("Error sending production email with EmailJS:", error);
         throw error;
     }
 }
