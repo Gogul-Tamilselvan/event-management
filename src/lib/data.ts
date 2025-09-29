@@ -24,6 +24,7 @@ export type Event = {
   location: string;
   description: string;
   organizer: string;
+  organizerId: string;
   attendees: number;
   capacity: number;
   status: 'Approved' | 'Pending' | 'Rejected';

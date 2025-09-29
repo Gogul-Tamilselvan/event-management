@@ -24,7 +24,7 @@ type ActionResult = {
     error?: string;
 };
 
-export async function createEventAction(formData: FormData, organizer: string): Promise<ActionResult> {
+export async function createEventAction(formData: FormData, organizerName: string, organizerId: string): Promise<ActionResult> {
     const rawFormData = Object.fromEntries(formData.entries());
 
     const validatedFields = FormSchema.safeParse(rawFormData);
@@ -47,7 +47,8 @@ export async function createEventAction(formData: FormData, organizer: string): 
             category: rest.category,
             capacity: rest.capacity,
             image: rest.image,
-            organizer: organizer,
+            organizer: organizerName,
+            organizerId: organizerId,
             attendees: 0,
             status: 'Pending',
             isPaid: isPaid,

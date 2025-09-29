@@ -44,11 +44,8 @@ export async function requestToJoinAction(formData: FormData): Promise<ActionRes
         const eventData = eventSnap.data() as Event;
         const userData = userSnap.data() as User;
         
-        // Find organizer's user record to get their ID
-        // This is a simplification. In a real app, you might query for the organizer user by name.
-        const organizerUserDoc = (await getDocs(collection(db, "users"))).docs.find(d => d.data().name === eventData.organizer);
-        if (!organizerUserDoc) {
-             return { success: false, error: "Organizer not found." };
+        if (!eventData.organizerId) {
+             return { success: false, error: "Organizer ID not found on event." };
         }
 
         const newRequest = {
@@ -57,7 +54,7 @@ export async function requestToJoinAction(formData: FormData): Promise<ActionRes
             attendeeId: attendeeId,
             attendeeName: userData.name,
             attendeeEmail: userData.email,
-            organizerId: organizerUserDoc.id,
+            organizerId: eventData.organizerId,
             status: 'pending',
             requestedAt: new Date().toISOString(),
         };

@@ -63,7 +63,7 @@ const formSchema = z.object({
 
 export default function CreateEventForm() {
   const { toast } = useToast();
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -86,7 +86,7 @@ export default function CreateEventForm() {
   const isPaid = form.watch('isPaid');
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!userProfile) {
+    if (!user || !userProfile) {
       toast({
         title: 'Error',
         description: 'You must be logged in to create an event.',
@@ -101,7 +101,7 @@ export default function CreateEventForm() {
       formData.append(key, String(value));
     });
 
-    const result = await createEventAction(formData, userProfile.name);
+    const result = await createEventAction(formData, userProfile.name, user.uid);
 
     if (result.success) {
       toast({
