@@ -2,7 +2,7 @@
 'use client';
 
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from '@/lib/firebase';
 import type { User as AppUser } from '@/lib/data';
@@ -34,6 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUserProfile({ id: userDoc.id, ...userDoc.data() } as AppUser);
           } else {
              console.warn("User document not found in Firestore for UID:", user.uid);
+             // Create a profile if it doesn't exist, e.g., after Google sign-in
              const newUserProfile: AppUser = {
                 id: user.uid,
                 email: user.email || '',
@@ -43,6 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 status: 'Active',
                 lastLogin: new Date().toISOString()
             };
+            await setDoc(doc(db, 'users', user.uid), newUserProfile);
             setUserProfile(newUserProfile);
           }
         } catch (error) {
