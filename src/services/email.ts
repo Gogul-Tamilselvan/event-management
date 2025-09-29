@@ -10,8 +10,31 @@ import { createGoogleWalletAction } from "@/actions/google-wallet";
  * @param event - The event the user was approved for.
  */
 export async function sendEventApprovalEmail(request: JoinRequest, event: Event): Promise<void> {
+    const { attendeeEmail, attendeeName } = request;
+    const { title } = event;
+    
+    // --- Mock Email Sending Logic for Development ---
+    // This logs the email to the console instead of sending a real one.
+    // Useful for when SendGrid isn't configured.
+    const walletResult = await createGoogleWalletAction(event, attendeeName);
+    if (walletResult.success && walletResult.walletUrl) {
+      logMockEmail(attendeeEmail, title, walletResult.walletUrl);
+    } else {
+      console.error("Could not create Google Wallet pass for mock email.");
+    }
+
     // --- Production Email Sending Logic ---
-    await sendProductionEmail(request, event);
+    // This part is commented out to prevent errors until SendGrid is fully configured.
+    // Once your SendGrid account is set up with a verified sender, you can uncomment this.
+    /*
+    try {
+        await sendProductionEmail(request, event);
+    } catch (error) {
+        console.error("Failed to send production email:", error);
+        // Re-throw the error to ensure the calling action knows about the failure.
+        throw error;
+    }
+    */
 }
 
 /**
