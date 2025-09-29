@@ -25,6 +25,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
@@ -42,6 +43,7 @@ export default function EventPage() {
   const [loading, setLoading] = useState(true);
   const [joinRequestStatus, setJoinRequestStatus] = useState<JoinRequest['status'] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const { toast } = useToast();
   const { user, userProfile } = useAuth();
@@ -113,24 +115,29 @@ export default function EventPage() {
     setIsSubmitting(false);
   };
   
-  const handlePayment = async () => {
+  const handlePaymentInitiation = () => {
     if (!userProfile) {
         toast({ title: "Please login to join", variant: "destructive"});
         router.push('/login');
         return;
     }
-    
     setShowPaymentDialog(true);
+  };
+
+  const handleConfirmPayment = async () => {
+    setIsConfirmingPayment(true);
     
-    // Simulate waiting for payment webhook after showing QR code
-    setTimeout(async () => {
-       setShowPaymentDialog(false);
-       toast({
+    // Simulate backend check for payment
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setShowPaymentDialog(false);
+    toast({
         title: "Payment Received!",
         description: `Your request for ${event.title} is now being sent for approval.`,
-       });
-       await handleRequestToJoin();
-    }, 8000); // Wait 8 seconds to simulate payment
+    });
+    
+    await handleRequestToJoin();
+    setIsConfirmingPayment(false);
   };
 
   const handleEmailReminder = () => {
@@ -156,8 +163,8 @@ export default function EventPage() {
 
       if (event.isPaid) {
           return (
-            <Button size="lg" className="w-full" onClick={handlePayment} disabled={isSubmitting}>
-              {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : <><CreditCard className="mr-2 h-4 w-4" />Pay ₹{event.price} to Join</>}
+            <Button size="lg" className="w-full" onClick={handlePaymentInitiation} disabled={isSubmitting}>
+              <CreditCard className="mr-2 h-4 w-4" />Pay ₹{event.price} to Join
             </Button>
           )
       }
@@ -279,7 +286,7 @@ export default function EventPage() {
           <DialogHeader>
             <DialogTitle>Complete Your Payment</DialogTitle>
             <DialogDescription>
-              Scan the QR code with your UPI app to pay ₹{event.price} to {event.organizer}.
+              Scan the QR code with your UPI app to pay ₹{event.price} to {event.organizer}. After paying, click the confirmation button below.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center py-4">
@@ -292,13 +299,30 @@ export default function EventPage() {
               />
             )}
             <div className="mt-4 text-center">
-              <p className="text-sm text-muted-foreground">Waiting for payment confirmation...</p>
-              <Loader2 className="h-6 w-6 animate-spin mt-2" />
+              <p className="text-sm text-muted-foreground">After payment, please confirm below.</p>
             </div>
           </div>
+          <DialogFooter>
+            <Button
+                variant="outline"
+                onClick={() => setShowPaymentDialog(false)}
+                disabled={isConfirmingPayment}
+            >
+                Cancel
+            </Button>
+            <Button
+                onClick={handleConfirmPayment}
+                disabled={isConfirmingPayment}
+            >
+                {isConfirmingPayment ? <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...
+                </> : "I have paid"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
     </div>
   );
 }
+
