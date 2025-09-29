@@ -4,7 +4,6 @@
 import { useRef, useState } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { verifyAttendeeAction } from '@/actions/verify-attendee';
 import { Barcode, ScanLine } from 'lucide-react';
@@ -52,7 +51,7 @@ export default function ScannerPage() {
         <CardContent>
             <div className="w-full max-w-md mx-auto p-4 border-2 border-dashed rounded-lg">
                 <Scanner
-                    onDecode={handleScanResult}
+                    onResult={(text, result) => handleScanResult(text)}
                     onError={(error) => console.log(error?.message)}
                     constraints={{ facingMode: 'environment' }}
                     containerStyle={{ width: '100%', paddingTop: '100%', position: 'relative' }}
