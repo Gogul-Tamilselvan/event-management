@@ -21,6 +21,7 @@ import {
   import ManagedEvents from '@/components/dashboard/organizer/managed-events';
   import CreateEventForm from '@/components/dashboard/organizer/create-event-form';
   import { useAuth } from '@/hooks/use-auth.tsx';
+import TestEmailForm from '@/components/dashboard/organizer/test-email-form';
 
   
   export default function OrganizerDashboardPage() {
@@ -105,8 +106,9 @@ import {
                 </Card>
             </div>
             <div className="grid gap-4 md:gap-8 lg:grid-cols-5">
-                <div id="my-events" className="lg:col-span-3">
+                 <div className="lg:col-span-3 space-y-4">
                     <ManagedEvents events={organizerEvents} />
+                    <TestEmailForm />
                 </div>
                 <div id="create-event" className="lg:col-span-2">
                     <CreateEventForm />
