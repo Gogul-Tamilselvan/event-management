@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -276,7 +277,7 @@ export default function CreateEventForm() {
                         name="price"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Price (INR)</FormLabel>
+                            <FormLabel>Price (₹)</FormLabel>
                             <FormControl>
                                 <Input type="number" placeholder="e.g. 500" {...field} />
                             </FormControl>
@@ -328,3 +329,5 @@ export default function CreateEventForm() {
     </Card>
   );
 }
+
+    

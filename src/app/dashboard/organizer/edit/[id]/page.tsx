@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -322,7 +323,7 @@ export default function EditEventPage() {
                         name="price"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Price (INR)</FormLabel>
+                            <FormLabel>Price (₹)</FormLabel>
                             <FormControl>
                                 <Input type="number" {...field} />
                             </FormControl>
@@ -374,3 +375,5 @@ export default function EditEventPage() {
     </Card>
   );
 }
+
+    
