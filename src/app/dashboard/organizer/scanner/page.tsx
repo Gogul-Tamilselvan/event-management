@@ -13,31 +13,34 @@ export default function ScannerPage() {
   const [lastResult, setLastResult] = useState<string | null>(null);
   const processingRef = useRef(false);
 
-  const handleScanResult = async (result: string) => {
+  const handleScanResult = (result: string) => {
     if (result && result !== lastResult && !processingRef.current) {
         processingRef.current = true;
         setLastResult(result);
 
-        const response = await verifyAttendeeAction(result);
+        // This function will still run asynchronously
+        (async () => {
+            const response = await verifyAttendeeAction(result);
 
-        if (response.success) {
-            toast({
-                title: 'Check-in Successful',
-                description: `${response.attendeeName} has been checked in.`,
-            });
-        } else {
-            toast({
-                title: 'Check-in Failed',
-                description: response.message,
-                variant: 'destructive',
-            });
-        }
+            if (response.success) {
+                toast({
+                    title: 'Check-in Successful',
+                    description: `${response.attendeeName} has been checked in.`,
+                });
+            } else {
+                toast({
+                    title: 'Check-in Failed',
+                    description: response.message,
+                    variant: 'destructive',
+                });
+            }
 
-        // Prevent re-scanning the same code for 3 seconds
-        setTimeout(() => {
-            processingRef.current = false;
-            setLastResult(null);
-        }, 3000);
+            // Prevent re-scanning the same code for 3 seconds
+            setTimeout(() => {
+                processingRef.current = false;
+                setLastResult(null);
+            }, 3000);
+        })();
     }
   };
 
@@ -83,4 +86,5 @@ export default function ScannerPage() {
     </Card>
   );
 }
+
 
