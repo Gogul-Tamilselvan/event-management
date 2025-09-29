@@ -14,33 +14,27 @@ import { createGoogleWalletAction } from "@/actions/google-wallet";
  */
 export async function sendEventApprovalEmail(request: JoinRequest, event: Event): Promise<void> {
     const { attendeeEmail, attendeeName } = request;
-    const { title, date, time, location } = event;
+    const { title } = event;
 
     // Simulate creating a Google Wallet pass link
     const walletResult = await createGoogleWalletAction(event, attendeeName);
     const walletUrl = walletResult.success ? walletResult.walletUrl : '#';
 
-    const subject = `Confirmation: You're in for ${title}!`;
+    const subject = `Your Ticket for ${title}!`;
 
     const emailBody = `
         <html>
             <body>
                 <h1>Congratulations, ${attendeeName}!</h1>
-                <p>Your request to join <strong>${title}</strong> has been approved.</p>
-                <h2>Event Details:</h2>
-                <ul>
-                    <li><strong>Date:</strong> ${new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</li>
-                    <li><strong>Time:</strong> ${time}</li>
-                    <li><strong>Location:</strong> ${location}</li>
-                </ul>
-                <p>We're excited to see you there!</p>
+                <p>Your ticket for <strong>${title}</strong> is ready. Please add it to your Google Wallet for easy access at the event.</p>
                 
                 <a href="${walletUrl}" target="_blank">
-                    <button style="padding: 10px 20px; background-color: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    <button style="padding: 10px 20px; background-color: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
                         Add to Google Wallet
                     </button>
                 </a>
                 
+                <p>We look forward to seeing you there!</p>
                 <p>Thanks,<br/>The Zenith Events Team</p>
             </body>
         </html>
