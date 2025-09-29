@@ -13,16 +13,28 @@ import {
     CardHeader,
     CardTitle,
   } from '@/components/ui/card'
-  import { analyticsData, getEvents, getUsers } from '@/lib/data';
+  import { getEvents, getUsers, analyticsData } from '@/lib/data';
   import { AnalyticsCharts } from '@/components/dashboard/admin/analytics-charts';
   import { UserManagement } from '@/components/dashboard/admin/user-management';
-  import EventApprovalForm from '@/components/dashboard/admin/event-approval-form';
+  import EventApprovals from '@/components/dashboard/admin/event-approvals';
   
   export default async function AdminDashboardPage() {
     const users = await getUsers();
     const events = await getEvents();
-    const pendingApprovals = events.filter(e => e.status === 'Pending').length;
+    const pendingEvents = events.filter(e => e.status === 'Pending');
     const activeEvents = events.filter(e => e.status === 'Approved').length;
+
+    const userSignups = users.reduce((acc, user) => {
+        const month = new Date(user.lastLogin).toLocaleString('default', { month: 'short' });
+        const existingMonth = acc.find(item => item.month === month);
+        if (existingMonth) {
+            existingMonth.signups++;
+        } else {
+            acc.push({ month, signups: 1 });
+        }
+        return acc;
+    }, [] as { month: string, signups: number }[]);
+
 
     return (
         <>
@@ -73,36 +85,28 @@ import {
                     <AlertCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold text-destructive">+{pendingApprovals}</div>
+                    <div className="text-2xl font-bold text-destructive">+{pendingEvents.length}</div>
                     <p className="text-xs text-muted-foreground">
                     Require manual review
                     </p>
                 </CardContent>
                 </Card>
             </div>
-            <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-                <Card className="xl:col-span-2">
+            <div id="analytics" className="grid gap-4 md:gap-8">
+                <Card>
                     <CardHeader>
                         <CardTitle>User Growth</CardTitle>
                         <CardDescription>Monthly new user signups.</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2">
-                        <AnalyticsCharts />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Event Approval Tool</CardTitle>
-                        <CardDescription>
-                            Use our AI to check if an event meets community guidelines.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <EventApprovalForm />
+                        <AnalyticsCharts data={userSignups} />
                     </CardContent>
                 </Card>
             </div>
-            <div className="grid gap-4 md:gap-8">
+            <div id="event-approvals" className="grid gap-4 md:gap-8">
+                <EventApprovals events={pendingEvents} />
+            </div>
+            <div id="user-management" className="grid gap-4 md:gap-8">
                  <UserManagement users={users} />
             </div>
       </>

@@ -50,9 +50,9 @@ type DashboardLayoutProps = {
 const NAV_ITEMS = {
   admin: [
     { href: '/dashboard/admin', icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
-    { href: '#', icon: <CheckSquare className="h-5 w-5" />, label: 'Event Approvals' },
-    { href: '#', icon: <Users className="h-5 w-5" />, label: 'User Management' },
-    { href: '#', icon: <BarChart className="h-5 w-5" />, label: 'Analytics' },
+    { href: '/dashboard/admin#event-approvals', icon: <CheckSquare className="h-5 w-5" />, label: 'Event Approvals' },
+    { href: '/dashboard/admin#user-management', icon: <Users className="h-5 w-5" />, label: 'User Management' },
+    { href: '/dashboard/admin#analytics', icon: <BarChart className="h-5 w-5" />, label: 'Analytics' },
     { href: '/account', icon: <Settings className="h-5 w-5" />, label: 'Settings' },
   ],
   organizer: [

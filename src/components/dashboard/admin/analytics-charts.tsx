@@ -2,7 +2,6 @@
 'use client'
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
-import { analyticsData } from '@/lib/data'
 import { ChartTooltipContent, ChartContainer, type ChartConfig } from '@/components/ui/chart'
 
 const chartConfig = {
@@ -12,11 +11,15 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function AnalyticsCharts() {
+type AnalyticsChartsProps = {
+    data: { month: string; signups: number }[];
+}
+
+export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
   return (
     <ChartContainer config={chartConfig} className="w-full h-[350px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={analyticsData.userSignups} accessibilityLayer>
+        <BarChart data={data} accessibilityLayer>
           <XAxis
             dataKey="month"
             stroke="#888888"
