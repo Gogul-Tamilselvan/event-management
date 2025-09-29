@@ -22,9 +22,12 @@ import { User, CalendarPlus } from 'lucide-react';
 import { Logo } from '@/components/layout/logo';
 import { Separator } from '@/components/ui/separator';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import type { User as AppUser } from '@/lib/data';
+
 
 type Role = 'Attendee' | 'Organizer';
 
@@ -86,9 +89,30 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    const provider = new GoogleAuthProvider();
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      // Check if the user already exists in Firestore
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        // If user doesn't exist, create a new profile.
+        // This handles cases where a user signs in for the first time via Google on the login page.
+        const newUserProfile: AppUser = {
+          id: user.uid,
+          email: user.email || '',
+          name: user.displayName || 'New User',
+          role: 'Attendee', // Default to 'Attendee' when signing in from login page
+          avatar: user.photoURL || '',
+          status: 'Active',
+          lastLogin: new Date().toISOString(),
+        };
+        await setDoc(userDocRef, newUserProfile);
+      }
+      
       // Redirect to a protected route or dashboard on successful login
       window.location.href = '/dashboard';
     } catch (error: any) {
