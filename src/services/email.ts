@@ -77,7 +77,6 @@ async function sendProductionEmail(request: JoinRequest, event: Event): Promise<
 
     try {
         console.log("Attempting to send email via EmailJS REST API...");
-        const fetch = (await import('node-fetch')).default;
         const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
             method: 'POST',
             headers: {
