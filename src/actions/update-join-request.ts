@@ -42,8 +42,8 @@ export async function updateJoinRequestAction(requestId: string, status: JoinReq
             const event = { id: eventSnap.id, ...eventSnap.data() } as Event;
             const request = requestSnap.data() as JoinRequest;
             
-            // Fire and forget email sending
-            sendEventApprovalEmail(request, event).catch(console.error);
+            // Send email. If it fails, the error will propagate.
+            await sendEventApprovalEmail(request, event);
         }
 
         revalidatePath('/dashboard/organizer/attendees');
