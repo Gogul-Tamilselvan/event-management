@@ -1,4 +1,5 @@
 
+
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 import data from './placeholder-images.json';
@@ -30,6 +31,19 @@ export type Event = {
   image: string;
 };
 
+export type JoinRequest = {
+    id: string;
+    eventId: string;
+    eventTitle: string;
+    attendeeId: string;
+    attendeeName: string;
+    attendeeEmail: string;
+    organizerId: string;
+    status: 'pending' | 'approved' | 'rejected';
+    requestedAt: string;
+};
+
+
 // NOTE: The following data is now fetched from Firestore.
 // If your database is empty, you may need to add some data manually in the Firebase console.
 export const users: User[] = [];
@@ -59,6 +73,20 @@ export async function getEvents(): Promise<Event[]> {
         return events;
     } catch (error) {
         console.error("Error fetching events: ", error);
+        return [];
+    }
+}
+
+export async function getJoinRequests(): Promise<JoinRequest[]> {
+    try {
+        const querySnapshot = await getDocs(collection(db, "joinRequests"));
+        const requests: JoinRequest[] = [];
+        querySnapshot.forEach((doc) => {
+            requests.push({ id: doc.id, ...doc.data() } as JoinRequest);
+        });
+        return requests;
+    } catch (error) {
+        console.error("Error fetching join requests: ", error);
         return [];
     }
 }

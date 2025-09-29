@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import Image from "next/image";
-import { Calendar, MapPin, Mail, Clock } from "lucide-react";
-import { getEvents } from "@/lib/data";
+import { Calendar, MapPin, Mail, Clock, Loader2, UserPlus } from "lucide-react";
+import { getEvents, getJoinRequests } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,30 +21,43 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
-import type { Event } from "@/lib/data";
+import type { Event, JoinRequest } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { requestToJoinAction } from "@/actions/request-to-join";
+
 
 export default function EventPage() {
   const params = useParams();
   const id = params.id as string;
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [joinRequestStatus, setJoinRequestStatus] = useState<JoinRequest['status'] | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user, userProfile } = useAuth();
 
   useEffect(() => {
-    async function fetchEvent() {
+    async function fetchEventAndRequestStatus() {
       const events = await getEvents();
       const currentEvent = events.find((e) => e.id === id);
+
       if (currentEvent) {
         setEvent(currentEvent);
+        if (user) {
+          const requests = await getJoinRequests();
+          const existingRequest = requests.find(req => req.eventId === id && req.attendeeId === user.uid);
+          if (existingRequest) {
+            setJoinRequestStatus(existingRequest.status);
+          }
+        }
       } else {
         notFound();
       }
       setLoading(false);
     }
-    fetchEvent();
-  }, [id]);
+    fetchEventAndRequestStatus();
+  }, [id, user]);
 
   if (loading) {
     return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -63,11 +77,28 @@ export default function EventPage() {
     return '#';
   };
 
-  const handleRsvp = () => {
-    toast({
-      title: "RSVP Successful!",
-      description: `You have successfully RSVP'd for ${event.title}.`,
-    });
+  const handleRequestToJoin = async () => {
+    if (!userProfile) {
+        toast({ title: "Please login to join", variant: "destructive"});
+        return;
+    }
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('eventId', event.id);
+    formData.append('attendeeId', userProfile.id);
+
+    const result = await requestToJoinAction(formData);
+    
+    if (result.success) {
+        toast({
+        title: "Request Sent!",
+        description: `Your request to join ${event.title} has been sent to the organizer.`,
+        });
+        setJoinRequestStatus('pending');
+    } else {
+        toast({ title: "Error", description: result.error, variant: 'destructive'});
+    }
+    setIsSubmitting(false);
   };
 
   const handleEmailReminder = () => {
@@ -76,6 +107,26 @@ export default function EventPage() {
       description: `We will email you a reminder for ${event.title} 24 hours before it starts.`,
     });
   };
+
+  const renderJoinButton = () => {
+      if (!user) {
+          return <Button size="lg" className="w-full" onClick={handleRequestToJoin}>Login to Join</Button>
+      }
+      if (joinRequestStatus === 'approved') {
+          return <Button size="lg" className="w-full" disabled>Attending</Button>
+      }
+      if (joinRequestStatus === 'pending') {
+          return <Button size="lg" className="w-full" disabled>Request Sent</Button>
+      }
+      if (joinRequestStatus === 'rejected') {
+          return <Button size="lg" className="w-full" variant="destructive" disabled>Request Rejected</Button>
+      }
+      return (
+        <Button size="lg" className="w-full" onClick={handleRequestToJoin} disabled={isSubmitting}>
+          {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</> : <><UserPlus className="mr-2 h-4 w-4" />Request to Join</>}
+        </Button>
+      );
+  }
 
   return (
     <div>
@@ -141,7 +192,7 @@ export default function EventPage() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 pt-4">
-                     <Button size="lg" className="w-full" onClick={handleRsvp}>RSVP Now</Button>
+                     {renderJoinButton()}
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="lg" className="w-full">

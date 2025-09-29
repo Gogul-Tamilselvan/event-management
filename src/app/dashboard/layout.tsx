@@ -16,6 +16,7 @@ import {
   Menu,
   LogOut,
   Loader2,
+  UserCheck,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -58,7 +59,8 @@ const NAV_ITEMS = {
   organizer: [
     { href: '/dashboard/organizer', icon: <Home className="h-5 w-5" />, label: 'Dashboard' },
     { href: '/dashboard/organizer#create-event', icon: <CalendarPlus className="h-5 w-5" />, label: 'Create Event' },
-    { href: '/dashboard/organizer#my-events', icon: <Users className="h-5 w-5" />, label: 'My Events' },
+    { href: '/dashboard/organizer#my-events', icon: <CheckSquare className="h-5 w-5" />, label: 'My Events' },
+    { href: '/dashboard/organizer/attendees', icon: <UserCheck className="h-5 w-5" />, label: 'Attendees' },
     { href: '/account', icon: <Settings className="h-5 w-5" />, label: 'Settings' },
   ],
   attendee: [
