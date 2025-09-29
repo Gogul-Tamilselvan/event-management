@@ -168,7 +168,7 @@ export default function EventPage() {
       if (event.isPaid) {
           return (
             <Button size="lg" className="w-full" onClick={handlePaymentInitiation} disabled={isSubmitting}>
-              <CreditCard className="mr-2 h-4 w-4" />Pay ₹{event.price} to Join
+              <CreditCard className="mr-2 h-4 w-4" />Pay ₹{event.price}
             </Button>
           )
       }
