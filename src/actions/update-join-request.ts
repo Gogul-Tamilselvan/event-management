@@ -52,6 +52,6 @@ export async function updateJoinRequestAction(requestId: string, status: JoinReq
     } catch (e) {
         console.error("Join Request Update Error: ", e);
         const error = e instanceof Error ? e.message : "An unexpected error occurred.";
-        return { success: false, error };
+        return { success: false, error: error };
     }
 }

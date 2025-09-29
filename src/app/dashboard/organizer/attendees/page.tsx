@@ -24,7 +24,6 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { Loader2 } from 'lucide-react';
 import { updateJoinRequestAction } from '@/actions/update-join-request';
 import { getJoinRequestsAction } from '@/actions/get-join-requests';
-import { useToast } from '@/hooks/use-toast';
 
 const statusVariant = {
   pending: 'secondary',
@@ -34,7 +33,6 @@ const statusVariant = {
 
 export default function AttendeeManagementPage() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [requests, setRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<Record<string, boolean>>({});
@@ -46,22 +44,22 @@ export default function AttendeeManagementPage() {
         if (result.success && result.requests) {
           setRequests(result.requests);
         } else {
-          toast({ title: 'Error', description: 'Could not fetch join requests.', variant: 'destructive'});
+          console.error('Could not fetch join requests:', result.error);
         }
       }
       setLoading(false);
     }
     fetchRequests();
-  }, [user, toast]);
+  }, [user]);
 
   const handleRequestUpdate = async (requestId: string, status: 'approved' | 'rejected', eventId: string) => {
     setUpdating(prev => ({...prev, [requestId]: true}));
     const result = await updateJoinRequestAction(requestId, status, eventId);
     if (result.success) {
       setRequests(prev => prev.map(r => r.id === requestId ? {...r, status} : r));
-      toast({ title: 'Success', description: `Request has been ${status}.`});
+      console.log(`Request has been ${status}.`);
     } else {
-      toast({ title: 'Error', description: result.error, variant: 'destructive'});
+      console.error('Error updating request:', result.error);
     }
     setUpdating(prev => ({...prev, [requestId]: false}));
   }
